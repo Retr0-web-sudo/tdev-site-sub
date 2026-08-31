@@ -74,14 +74,14 @@ const SubscriptionPlans = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-body mb-3">
-            Subscription Plans
+            Choose Your Tier
           </p>
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-light text-foreground leading-[1.1]">
-            Pick the plan<br />
-            <span className="italic text-accent">that fits you.</span>
+            Subscribe to the style<br />
+            <span className="italic text-accent">you actually want.</span>
           </h1>
           <p className="mt-4 text-muted-foreground font-body text-sm max-w-lg mx-auto">
-            Every plan includes free delivery, free returns, and a personal stylist who learns your taste over time.
+            Pick a tier. Browse the catalog monthly. Choose outfits you love. We curate the rest and deliver it to your door.
           </p>
         </motion.div>
 
@@ -138,14 +138,14 @@ const SubscriptionPlans = () => {
                   </ul>
 
                   <Link
-                    to={`/subscription/build-box?plan=${plan.id}`}
+                    to={`/subscription/quiz?plan=${plan.id}`}
                     className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-[11px] tracking-[0.15em] uppercase font-body font-medium transition-all duration-300 ${
                       isFeatured
                         ? "bg-accent text-accent-foreground hover:bg-accent/90"
                         : "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    Get Started
+                    Choose Plan
                     <ArrowRight size={14} />
                   </Link>
                 </motion.div>

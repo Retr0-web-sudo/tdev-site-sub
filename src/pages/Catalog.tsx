@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
-import { Filter, Check, X, Search, Grid3X3, List, ArrowRight } from "lucide-react";
+import { Filter, Check, X, Search, Grid3X3, List, ArrowRight, Heart } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
@@ -53,6 +53,35 @@ const Catalog = () => {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const token = localStorage.getItem("tdev_token");
+    if (!token) return;
+    fetch("/api/wishlist", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setWishlist(new Set(d.data.map((i: any) => i.product_id))); })
+      .catch(() => {});
+  }, []);
+
+  const toggleWishlist = async (productId: string) => {
+    const token = localStorage.getItem("tdev_token");
+    if (!token) return;
+    const inWish = wishlist.has(productId);
+    const res = await fetch(`/api/wishlist${inWish ? `/${productId}` : ""}`, {
+      method: inWish ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      ...(!inWish ? { body: JSON.stringify({ productId }) } : {}),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setWishlist(prev => {
+        const next = new Set(prev);
+        inWish ? next.delete(productId) : next.add(productId);
+        return next;
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -197,6 +226,9 @@ const Catalog = () => {
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 font-display text-3xl">{product.name[0]}</div>
                     )}
                     <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[9px] font-body tracking-wider uppercase ${tierInfo.color}`}>{tierInfo.label}</span>
+                    <button onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }} className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${wishlist.has(product.id) ? "bg-red-500/20 text-red-400" : "bg-background/60 text-muted-foreground hover:text-red-400"}`}>
+                      <Heart size={12} fill={wishlist.has(product.id) ? "currentColor" : "none"} />
+                    </button>
                   </div>
                   <div className="p-3">
                     <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider mb-0.5">{product.brand || "TDEV"}</p>
@@ -236,6 +268,9 @@ const Catalog = () => {
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-body font-medium text-foreground">GH¢ {Number(product.price)}</p>
                     <p className="text-[10px] text-muted-foreground font-body">{product.sizes?.join(", ")}</p>
+                    <button onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }} className={`mt-1 p-1.5 rounded-md transition-colors ${wishlist.has(product.id) ? "text-red-400" : "text-muted-foreground hover:text-red-400"}`}>
+                      <Heart size={12} fill={wishlist.has(product.id) ? "currentColor" : "none"} />
+                    </button>
                   </div>
                 </motion.div>
               );

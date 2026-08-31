@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Bell, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { label: "Catalog", href: "/catalog" },
@@ -17,6 +18,24 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user, isAdmin } = useAuth();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = async () => {
+      try {
+        const token = localStorage.getItem("tdev_token");
+        const res = await fetch("/api/notifications/unread-count", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (data.success) setUnreadCount(data.data.count);
+      } catch {}
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -60,10 +79,23 @@ const Navbar = () => {
 
         <div className="flex items-center gap-4">
           {user ? (
-            <Link to={isAdmin ? "/admin" : "/subscription/dashboard"} className="flex items-center gap-1.5 text-foreground hover:text-accent transition-all duration-300">
-              <User size={18} />
-              <span className="hidden lg:inline text-xs font-body tracking-wider">{isAdmin ? "Admin" : "Dashboard"}</span>
-            </Link>
+            <>
+              <Link to="/wishlist" className="relative text-foreground hover:text-accent transition-all duration-300 hidden md:block" aria-label="Wishlist">
+                <Heart size={18} />
+              </Link>
+              <Link to="/notifications" className="relative text-foreground hover:text-accent transition-all duration-300 hidden md:block" aria-label="Notifications">
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-[16px] bg-accent text-accent-foreground text-[8px] font-body font-semibold rounded-full flex items-center justify-center px-0.5">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+              <Link to={isAdmin ? "/admin" : "/subscription/dashboard"} className="flex items-center gap-1.5 text-foreground hover:text-accent transition-all duration-300">
+                <User size={18} />
+                <span className="hidden lg:inline text-xs font-body tracking-wider">{isAdmin ? "Admin" : "Dashboard"}</span>
+              </Link>
+            </>
           ) : (
             <Link to="/auth" className="text-xs font-body tracking-[0.15em] uppercase text-foreground hover:text-accent transition-colors">
               Sign In

@@ -41,6 +41,9 @@ function route(table) {
     subscription_orders: '/subscription-orders',
     style_quizzes: '/style-quiz',
     subscription_payments: '/subscription-payments',
+    wishlists: '/wishlist',
+    notifications: '/notifications',
+    monthly_boxes: '/monthly-box',
   };
   return map[table] || '/' + table;
 }

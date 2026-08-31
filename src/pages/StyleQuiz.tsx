@@ -71,8 +71,8 @@ const StyleQuiz = () => {
 
       if (error) throw error;
 
-      toast({ title: "Style quiz saved!", description: "Your stylist will use this for your first box." });
-      navigate(planId ? `/subscription/checkout?plan=${planId}` : "/subscription/plans");
+      toast({ title: "Style profile saved!", description: "Now pick your outfits for this month's box." });
+      navigate(planId ? `/subscription/build-box?plan=${planId}` : "/subscription/plans");
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to save quiz", variant: "destructive" });
     } finally {

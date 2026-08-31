@@ -14,6 +14,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ResetPassword from "./pages/ResetPassword";
 import Contact from "./pages/Contact";
+import Wishlist from "./pages/Wishlist";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import Catalog from "./pages/Catalog";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
@@ -37,6 +39,8 @@ const AppInner = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />
         <Route path="/subscription/quiz" element={<StyleQuiz />} />
