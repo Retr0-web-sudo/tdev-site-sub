@@ -230,7 +230,7 @@ var logger = {
 
 // server/routes.ts
 neonConfig.fetchConnectionCache = true;
-var uuidv4 = randomUUID;
+var uuidv42 = randomUUID;
 var JWT_SECRET2 = process.env.JWT_SECRET;
 if (!JWT_SECRET2) throw new Error("JWT_SECRET environment variable is required");
 var _sql = null;
@@ -257,6 +257,20 @@ function setAuthCookie(res, token) {
     path: "/"
   });
 }
+var NUMERIC_FIELDS = ["price", "compare_at_price", "stock_quantity", "weight", "total", "discount_percent", "quoted_price"];
+function fixNumericFields(row) {
+  if (!row) return row;
+  const r = { ...row };
+  for (const field of NUMERIC_FIELDS) {
+    if (r[field] !== null && r[field] !== void 0) {
+      r[field] = Number(r[field]);
+    }
+  }
+  return r;
+}
+function fixNumericFieldsArray(rows) {
+  return rows.map(fixNumericFields);
+}
 router.get("/health", cacheControl(0), async (_req, res) => {
   try {
     await sql("SELECT 1", []);
@@ -275,20 +289,20 @@ router.post("/auth/signup", authLimiter, async (req, res) => {
     if (existing.length > 0) {
       return res.status(409).json({ success: false, error: "Email already registered" });
     }
-    const userId = uuidv4();
+    const userId = uuidv42();
     const hashedPassword = await bcrypt.hash(data.password, 10);
     await sql(
       `INSERT INTO profiles (id, user_id, email, display_name, created_at, updated_at)
        VALUES ($1, $2, $3, $4, now(), now())`,
-      [uuidv4(), userId, data.email, data.displayName || data.email.split("@")[0]]
+      [uuidv42(), userId, data.email, data.displayName || data.email.split("@")[0]]
     );
     await sql(
       `INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`,
-      [uuidv4(), userId, "user"]
+      [uuidv42(), userId, "user"]
     );
     await sql(
       `INSERT INTO site_settings (id, key, value) VALUES ($1, $2, $3)`,
-      [uuidv4(), `auth_${userId}`, JSON.stringify({ password: hashedPassword })]
+      [uuidv42(), `auth_${userId}`, JSON.stringify({ password: hashedPassword })]
     );
     const token = generateToken(userId, "user");
     setAuthCookie(res, token);
@@ -406,7 +420,7 @@ router.put("/auth/me", authenticate, async (req, res) => {
       } else {
         await sql(
           `INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`,
-          [uuidv4(), `auth_${req.userId}`, JSON.stringify({ password: hashedPassword })]
+          [uuidv42(), `auth_${req.userId}`, JSON.stringify({ password: hashedPassword })]
         );
       }
     }
@@ -440,7 +454,7 @@ router.put("/auth/profile", authenticate, async (req, res) => {
 router.get("/products", cacheControl(60), async (_req, res) => {
   try {
     const rows = await sql(`SELECT * FROM products ORDER BY created_at DESC`);
-    return res.json({ success: true, data: rows });
+    return res.json({ success: true, data: fixNumericFieldsArray(rows) });
   } catch (err) {
     logger.error("Products fetch error", { error: err.message });
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -452,7 +466,7 @@ router.get("/products/id/:id", authenticate, requireAdmin, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Product not found" });
     }
-    return res.json({ success: true, data: rows[0] });
+    return res.json({ success: true, data: fixNumericFields(rows[0]) });
   } catch (err) {
     logger.error("Product fetch by id error", { error: err.message });
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -464,7 +478,7 @@ router.get("/products/:slug", async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Product not found" });
     }
-    return res.json({ success: true, data: rows[0] });
+    return res.json({ success: true, data: fixNumericFields(rows[0]) });
   } catch (err) {
     logger.error("Product fetch error", { error: err.message });
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -473,7 +487,7 @@ router.get("/products/:slug", async (req, res) => {
 router.post("/products", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = productSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO products (id, name, slug, description, price, compare_at_price, category_id, images, sizes, colors, in_stock, featured, sku, stock_quantity, weight, material, brand, tags, status, published, is_visible, published_at, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, now(), now(), now())`,
@@ -502,7 +516,7 @@ router.post("/products", authenticate, requireAdmin, async (req, res) => {
       ]
     );
     const product = await sql(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [id]);
-    return res.status(201).json({ success: true, data: product[0] });
+    return res.status(201).json({ success: true, data: fixNumericFields(product[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
       return res.status(400).json({ success: false, error: "Validation failed", details: err.errors });
@@ -535,7 +549,7 @@ router.put("/products/:id", authenticate, requireAdmin, async (req, res) => {
       values
     );
     const updated = await sql(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [req.params.id]);
-    return res.json({ success: true, data: updated[0] });
+    return res.json({ success: true, data: fixNumericFields(updated[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
       return res.status(400).json({ success: false, error: "Validation failed", details: err.errors });
@@ -567,7 +581,7 @@ router.get("/categories", cacheControl(300), async (_req, res) => {
 router.post("/categories", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = categorySchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO categories (id, name, slug, description, image_url, display_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, now(), now())`,
@@ -622,7 +636,7 @@ router.delete("/categories/:id", authenticate, requireAdmin, async (req, res) =>
 router.post("/contact", contactLimiter, async (req, res) => {
   try {
     const data = contactSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO messages (id, name, email, subject, message, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, 'unread', now(), now())`,
@@ -673,7 +687,7 @@ router.put("/messages/:id/status", authenticate, requireAdmin, async (req, res) 
 router.post("/design-requests", async (req, res) => {
   try {
     const data = designRequestSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO custom_design_requests (id, name, email, phone, shirt_color, shirt_size, design_image_url, design_data, notes, quantity, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', now(), now())`,
@@ -727,7 +741,7 @@ router.get("/orders", authenticate, async (req, res) => {
     } else {
       rows = await sql(`SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`, [req.userId]);
     }
-    return res.json({ success: true, data: rows });
+    return res.json({ success: true, data: fixNumericFieldsArray(rows) });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
@@ -735,7 +749,7 @@ router.get("/orders", authenticate, async (req, res) => {
 router.post("/orders", authenticate, async (req, res) => {
   try {
     const data = orderSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO orders (id, user_id, status, total, shipping_address, items, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, now(), now())`,
@@ -749,7 +763,7 @@ router.post("/orders", authenticate, async (req, res) => {
       ]
     );
     const order = await sql(`SELECT * FROM orders WHERE id = $1 LIMIT 1`, [id]);
-    return res.status(201).json({ success: true, data: order[0] });
+    return res.status(201).json({ success: true, data: fixNumericFields(order[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
       return res.status(400).json({ success: false, error: "Validation failed", details: err.errors });
@@ -797,7 +811,7 @@ router.get("/blog/:slug", async (req, res) => {
 router.post("/blog", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = blogPostSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO blog_posts (id, title, slug, excerpt, content, cover_image, published, author_name, tags, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())`,
@@ -869,7 +883,7 @@ router.get("/announcements", cacheControl(60), async (_req, res) => {
 router.post("/announcements", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = announcementSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO announcements (id, title, message, link_text, link_url, active, display_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now())`,
@@ -915,7 +929,7 @@ router.get("/discount-codes", authenticate, requireAdmin, async (_req, res) => {
 router.post("/discount-codes", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = discountCodeSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO discount_codes (id, code, discount_percent, game_name, expires_at, created_at)
        VALUES ($1, $2, $3, $4, $5, now())`,
@@ -951,7 +965,7 @@ router.post("/discount-codes/validate", async (req, res) => {
 router.post("/page-views", async (req, res) => {
   try {
     const data = pageViewSchema.parse(req.body);
-    const id = uuidv4();
+    const id = uuidv42();
     await sql(
       `INSERT INTO page_views (id, page, visitor_id, session_duration, created_at) VALUES ($1, $2, $3, $4, now())`,
       [id, data.page, data.visitorId || null, data.sessionDuration ?? 0]
@@ -999,7 +1013,7 @@ router.put("/settings/:key", authenticate, requireAdmin, async (req, res) => {
     if (existing.length > 0) {
       await sql(`UPDATE site_settings SET value = $1, updated_at = now() WHERE key = $2`, [JSON.stringify(value), key]);
     } else {
-      await sql(`INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`, [uuidv4(), key, JSON.stringify(value)]);
+      await sql(`INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`, [uuidv42(), key, JSON.stringify(value)]);
     }
     return res.json({ success: true, message: "Setting saved" });
   } catch (err) {
@@ -1018,7 +1032,7 @@ router.post("/subscribe", subscribeLimiter, async (req, res) => {
     }
     await sql(
       `INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`,
-      [uuidv4(), `subscriber_${data.email}`, JSON.stringify({ email: data.email, subscribedAt: (/* @__PURE__ */ new Date()).toISOString() })]
+      [uuidv42(), `subscriber_${data.email}`, JSON.stringify({ email: data.email, subscribedAt: (/* @__PURE__ */ new Date()).toISOString() })]
     );
     return res.status(201).json({ success: true, message: "Subscribed successfully" });
   } catch (err) {
@@ -1055,7 +1069,7 @@ router.put("/users/:userId/role", authenticate, requireAdmin, async (req, res) =
     if (existing.length > 0) {
       await sql(`UPDATE user_roles SET role = $1 WHERE user_id = $2`, [role, req.params.userId]);
     } else {
-      await sql(`INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`, [uuidv4(), req.params.userId, role]);
+      await sql(`INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`, [uuidv42(), req.params.userId, role]);
     }
     return res.json({ success: true, message: "Role updated" });
   } catch (err) {
@@ -1240,6 +1254,873 @@ router.get("/payments/gateway", async (_req, res) => {
 });
 var routes_default = router;
 
+// server/subscription-routes.ts
+import { Router as Router2 } from "express";
+import { randomUUID as randomUUID2 } from "crypto";
+import { neon as neon2, neonConfig as neonConfig2 } from "@neondatabase/serverless";
+
+// server/subscription-validators.ts
+import { z as z2 } from "zod";
+var subscriptionPlanSchema = z2.object({
+  name: z2.string().min(1, "Name is required"),
+  slug: z2.string().min(1, "Slug is required"),
+  description: z2.string().optional().nullable(),
+  price: z2.string().or(z2.number()).default("0"),
+  interval: z2.enum(["monthly", "quarterly", "annual"]).default("monthly"),
+  features: z2.array(z2.string()).optional().default([]),
+  itemCountMin: z2.number().int().optional().default(1),
+  itemCountMax: z2.number().int().optional().default(3),
+  isActive: z2.boolean().optional().default(true),
+  displayOrder: z2.number().int().optional().default(0)
+});
+var createSubscriptionSchema = z2.object({
+  planId: z2.string().uuid("Invalid plan ID"),
+  shippingAddress: z2.object({
+    address: z2.string().optional(),
+    city: z2.string().optional(),
+    region: z2.string().optional(),
+    phone: z2.string().optional(),
+    notes: z2.string().optional()
+  }).optional()
+});
+var updateSubscriptionSchema = z2.object({
+  status: z2.enum(["active", "paused", "cancelled"]).optional(),
+  planId: z2.string().uuid().optional(),
+  shippingAddress: z2.any().optional()
+});
+var styleQuizSchema = z2.object({
+  sizes: z2.object({
+    top: z2.string().optional(),
+    bottom: z2.string().optional(),
+    dress: z2.string().optional(),
+    shoe: z2.string().optional()
+  }).optional(),
+  preferredColors: z2.array(z2.string()).optional().default([]),
+  preferredStyles: z2.array(z2.string()).optional().default([]),
+  occasions: z2.array(z2.string()).optional().default([]),
+  notes: z2.string().optional().nullable()
+});
+var shipOrderSchema = z2.object({
+  trackingNumber: z2.string().optional(),
+  estimatedDelivery: z2.string().optional(),
+  notes: z2.string().optional()
+});
+
+// server/subscription-routes.ts
+neonConfig2.fetchConnectionCache = true;
+var uuidv43 = randomUUID2;
+var _sql2 = null;
+async function sql2(query, params) {
+  if (!_sql2) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL is not set");
+    _sql2 = neon2(url);
+  }
+  return await _sql2.query(query, params || []);
+}
+var router2 = Router2();
+var NUMERIC_FIELDS2 = ["price", "amount", "total"];
+function fixNumeric(row) {
+  if (!row) return row;
+  const r = { ...row };
+  for (const f of NUMERIC_FIELDS2) {
+    if (r[f] !== null && r[f] !== void 0) r[f] = Number(r[f]);
+  }
+  if (r.features && typeof r.features === "string") {
+    try {
+      r.features = JSON.parse(r.features);
+    } catch {
+    }
+  }
+  if (r.sizes && typeof r.sizes === "string") {
+    try {
+      r.sizes = JSON.parse(r.sizes);
+    } catch {
+    }
+  }
+  if (r.items && typeof r.items === "string") {
+    try {
+      r.items = JSON.parse(r.items);
+    } catch {
+    }
+  }
+  if (r.shipping_address && typeof r.shipping_address === "string") {
+    try {
+      r.shipping_address = JSON.parse(r.shipping_address);
+    } catch {
+    }
+  }
+  if (r.style_preferences && typeof r.style_preferences === "string") {
+    try {
+      r.style_preferences = JSON.parse(r.style_preferences);
+    } catch {
+    }
+  }
+  return r;
+}
+function fixMany(rows) {
+  return rows.map(fixNumeric);
+}
+router2.get("/subscription-plans", cacheControl(300), async (_req, res) => {
+  try {
+    const rows = await sql2("SELECT * FROM public.subscription_plans WHERE is_active = true ORDER BY display_order ASC");
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch plans", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch plans" });
+  }
+});
+router2.get("/subscription-plans/:slug", cacheControl(300), async (req, res) => {
+  try {
+    const rows = await sql2("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
+    if (!rows[0]) return res.status(404).json({ success: false, error: "Plan not found" });
+    res.json({ success: true, data: fixNumeric(rows[0]) });
+  } catch (err) {
+    logger.error("Failed to fetch plan", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch plan" });
+  }
+});
+router2.post("/subscriptions", authenticate, async (req, res) => {
+  try {
+    const parsed = createSubscriptionSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+    const userId = req.userId;
+    const { planId, shippingAddress } = parsed.data;
+    const plans = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1 AND is_active = true", [planId]);
+    if (!plans[0]) return res.status(404).json({ success: false, error: "Plan not found" });
+    const existing = await sql2(
+      "SELECT id FROM public.subscriptions WHERE user_id = $1 AND status = 'active' LIMIT 1",
+      [userId]
+    );
+    if (existing[0]) return res.status(409).json({ success: false, error: "You already have an active subscription" });
+    const quiz = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1 LIMIT 1", [userId]);
+    const now = /* @__PURE__ */ new Date();
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const id = uuidv43();
+    await sql2(
+      `INSERT INTO public.subscriptions (id, user_id, plan_id, status, shipping_address, style_preferences, current_period_start, current_period_end, next_billing_date)
+       VALUES ($1, $2, $3, 'active', $4, $5, $6, $7, $8)`,
+      [
+        id,
+        userId,
+        planId,
+        JSON.stringify(shippingAddress || {}),
+        JSON.stringify(quiz[0] ? { sizes: quiz[0].sizes, colors: quiz[0].preferred_colors, styles: quiz[0].preferred_styles } : {}),
+        now.toISOString(),
+        nextMonth.toISOString(),
+        nextMonth.toISOString()
+      ]
+    );
+    const sub = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    res.status(201).json({ success: true, data: fixNumeric(sub[0]) });
+  } catch (err) {
+    logger.error("Failed to create subscription", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to create subscription" });
+  }
+});
+router2.get("/subscriptions/mine", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT s.*, sp.name as plan_name, sp.slug as plan_slug, sp.price as plan_price, sp.features as plan_features
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.user_id = $1
+       ORDER BY s.created_at DESC LIMIT 1`,
+      [req.userId]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch subscription", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch subscription" });
+  }
+});
+router2.patch("/subscriptions/:id", authenticate, async (req, res) => {
+  try {
+    const parsed = updateSubscriptionSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+    const { id } = req.params;
+    const userId = req.userId;
+    const existing = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    if (!existing[0]) return res.status(404).json({ success: false, error: "Subscription not found" });
+    if (existing[0].user_id !== userId && req.userRole !== "admin") {
+      return res.status(403).json({ success: false, error: "Forbidden" });
+    }
+    const fields = [];
+    const values = [];
+    let idx = 1;
+    if (parsed.data.status) {
+      fields.push(`status = $${idx++}`);
+      values.push(parsed.data.status);
+      if (parsed.data.status === "cancelled") {
+        fields.push(`cancelled_at = $${idx++}`);
+        values.push((/* @__PURE__ */ new Date()).toISOString());
+      }
+    }
+    if (parsed.data.planId) {
+      fields.push(`plan_id = $${idx++}`);
+      values.push(parsed.data.planId);
+    }
+    if (parsed.data.shippingAddress) {
+      fields.push(`shipping_address = $${idx++}`);
+      values.push(JSON.stringify(parsed.data.shippingAddress));
+    }
+    fields.push(`updated_at = $${idx++}`);
+    values.push((/* @__PURE__ */ new Date()).toISOString());
+    values.push(id);
+    await sql2(`UPDATE public.subscriptions SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const updated = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    res.json({ success: true, data: fixNumeric(updated[0]) });
+  } catch (err) {
+    logger.error("Failed to update subscription", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to update subscription" });
+  }
+});
+router2.post("/subscriptions/:id/cancel", authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+    const existing = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    if (!existing[0]) return res.status(404).json({ success: false, error: "Subscription not found" });
+    if (existing[0].user_id !== userId && req.userRole !== "admin") {
+      return res.status(403).json({ success: false, error: "Forbidden" });
+    }
+    await sql2(
+      "UPDATE public.subscriptions SET status = 'cancelled', cancelled_at = $1, updated_at = $1 WHERE id = $2",
+      [(/* @__PURE__ */ new Date()).toISOString(), id]
+    );
+    const updated = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    res.json({ success: true, data: fixNumeric(updated[0]) });
+  } catch (err) {
+    logger.error("Failed to cancel subscription", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to cancel subscription" });
+  }
+});
+router2.post("/style-quiz", authenticate, async (req, res) => {
+  try {
+    const parsed = styleQuizSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+    const userId = req.userId;
+    const data = parsed.data;
+    const existing = await sql2("SELECT id FROM public.style_quizzes WHERE user_id = $1", [userId]);
+    if (existing[0]) {
+      await sql2(
+        `UPDATE public.style_quizzes
+         SET sizes = $1, preferred_colors = $2, preferred_styles = $3, occasions = $4, notes = $5, completed_at = $6, updated_at = $6
+         WHERE user_id = $7`,
+        [JSON.stringify(data.sizes || {}), data.preferredColors, data.preferredStyles, data.occasions, data.notes, (/* @__PURE__ */ new Date()).toISOString(), userId]
+      );
+    } else {
+      await sql2(
+        `INSERT INTO public.style_quizzes (id, user_id, sizes, preferred_colors, preferred_styles, occasions, notes, completed_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [uuidv43(), userId, JSON.stringify(data.sizes || {}), data.preferredColors, data.preferredStyles, data.occasions, data.notes, (/* @__PURE__ */ new Date()).toISOString()]
+      );
+    }
+    const quiz = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1", [userId]);
+    res.json({ success: true, data: fixNumeric(quiz[0]) });
+  } catch (err) {
+    logger.error("Failed to save quiz", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to save quiz" });
+  }
+});
+router2.get("/style-quiz/mine", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1", [req.userId]);
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch quiz", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch quiz" });
+  }
+});
+router2.get("/subscription-orders/mine", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT so.*, sp.name as plan_name
+       FROM public.subscription_orders so
+       JOIN public.subscriptions s ON so.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE so.user_id = $1
+       ORDER BY so.created_at DESC`,
+      [req.userId]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch orders", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch orders" });
+  }
+});
+router2.get("/subscription-orders/:id", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ success: false, error: "Order not found" });
+    if (rows[0].user_id !== req.userId && req.userRole !== "admin") {
+      return res.status(403).json({ success: false, error: "Forbidden" });
+    }
+    res.json({ success: true, data: fixNumeric(rows[0]) });
+  } catch (err) {
+    logger.error("Failed to fetch order", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch order" });
+  }
+});
+router2.get("/subscriptions", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT s.*, sp.name as plan_name, sp.price as plan_price, sp.features as plan_features
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.user_id = $1
+       ORDER BY s.created_at DESC`,
+      [req.userId]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch subscriptions", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch subscriptions" });
+  }
+});
+router2.get("/subscription-orders", authenticate, async (req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT so.*, sp.name as plan_name
+       FROM public.subscription_orders so
+       JOIN public.subscriptions s ON so.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE so.user_id = $1
+       ORDER BY so.created_at DESC`,
+      [req.userId]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch subscription orders", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch subscription orders" });
+  }
+});
+router2.post("/admin/subscription-orders/:id/ship", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const parsed = shipOrderSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+    const { id } = req.params;
+    const { trackingNumber } = parsed.data;
+    await sql2(
+      "UPDATE public.subscription_orders SET status = 'shipped', tracking_number = $1, shipped_at = $2, updated_at = $2 WHERE id = $3",
+      [trackingNumber || null, (/* @__PURE__ */ new Date()).toISOString(), id]
+    );
+    const updated = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
+    res.json({ success: true, data: fixNumeric(updated[0]) });
+  } catch (err) {
+    logger.error("Failed to ship order", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to ship order" });
+  }
+});
+router2.get("/admin/subscriptions", authenticate, requireAdmin, async (_req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT s.*, sp.name as plan_name, sp.price as plan_price, p.display_name, p.email
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       LEFT JOIN public.profiles p ON s.user_id = p.user_id
+       ORDER BY s.created_at DESC`
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch subscriptions", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch subscriptions" });
+  }
+});
+router2.get("/admin/subscription-stats", authenticate, requireAdmin, async (_req, res) => {
+  try {
+    const [totalSubs, activeSubs, planBreakdown, revenue] = await Promise.all([
+      sql2("SELECT COUNT(*)::int as count FROM public.subscriptions"),
+      sql2("SELECT COUNT(*)::int as count FROM public.subscriptions WHERE status = 'active'"),
+      sql2(`SELECT sp.name, COUNT(s.id)::int as count
+           FROM public.subscription_plans sp
+           LEFT JOIN public.subscriptions s ON sp.id = s.plan_id AND s.status = 'active'
+           GROUP BY sp.name ORDER BY sp.display_order`),
+      sql2("SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.subscription_payments WHERE status = 'succeeded'")
+    ]);
+    res.json({
+      success: true,
+      data: {
+        totalSubscriptions: totalSubs[0]?.count || 0,
+        activeSubscriptions: activeSubs[0]?.count || 0,
+        planBreakdown: fixMany(planBreakdown),
+        totalRevenue: Number(revenue[0]?.total || 0)
+      }
+    });
+  } catch (err) {
+    logger.error("Failed to fetch stats", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch stats" });
+  }
+});
+router2.get("/subscription-plans/:slug/curate", cacheControl(60), async (req, res) => {
+  try {
+    const plans = await sql2("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
+    if (!plans[0]) return res.status(404).json({ success: false, error: "Plan not found" });
+    const plan = plans[0];
+    const maxItems = plan.item_count_max || 5;
+    const products = await sql2(
+      `SELECT p.*, c.name as category_name
+       FROM public.products p
+       LEFT JOIN public.categories c ON p.category_id = c.id
+       WHERE p.status = 'published' AND p.in_stock = true
+       ORDER BY RANDOM()
+       LIMIT $1`,
+      [maxItems * 3]
+    );
+    const curated = [];
+    const usedCategories = /* @__PURE__ */ new Set();
+    for (const p of products) {
+      if (curated.length >= maxItems) break;
+      if (curated.length < (plan.item_count_min || 2) || !usedCategories.has(p.category_name)) {
+        curated.push({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: Number(p.price),
+          category: p.category_name,
+          sizes: p.sizes,
+          colors: p.colors
+        });
+        usedCategories.add(p.category_name);
+      }
+    }
+    res.json({ success: true, data: curated });
+  } catch (err) {
+    logger.error("Failed to curate products", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to curate products" });
+  }
+});
+router2.post("/cron/billing", async (req, res) => {
+  const secret = req.headers["x-cron-secret"];
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ success: false, error: "Unauthorized" });
+  }
+  try {
+    const dueSubs = await sql2(
+      `SELECT s.*, sp.price, sp.name as plan_name
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.status = 'active' AND s.next_billing_date <= now()`
+    );
+    let billed = 0;
+    let failed = 0;
+    for (const sub of dueSubs) {
+      try {
+        await sql2(
+          `INSERT INTO public.subscription_payments (id, subscription_id, user_id, amount, currency, payment_method, status, transaction_id, paid_at, created_at)
+           VALUES ($1, $2, $3, $4, 'GHS', 'recurring', 'succeeded', $5, now(), now())`,
+          [uuidv43(), sub.id, sub.user_id, sub.price, `txn_recurring_${Date.now()}_${sub.id.slice(0, 8)}`]
+        );
+        await sql2(
+          `INSERT INTO public.subscription_orders (id, subscription_id, user_id, status, items, amount, shipping_address, created_at, updated_at)
+           VALUES ($1, $2, $3, 'pending', '[]', $4, $5, now(), now())`,
+          [uuidv43(), sub.id, sub.user_id, sub.price, sub.shipping_address || "{}"]
+        );
+        const nextDate = new Date(sub.next_billing_date);
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        await sql2(
+          "UPDATE public.subscriptions SET next_billing_date = $1, current_period_end = $1, updated_at = now() WHERE id = $2",
+          [nextDate.toISOString(), sub.id]
+        );
+        billed++;
+      } catch (err) {
+        failed++;
+        logger.error("Billing failed for subscription", { subscriptionId: sub.id, error: err });
+      }
+    }
+    res.json({ success: true, data: { due: dueSubs.length, billed, failed } });
+  } catch (err) {
+    logger.error("Billing cron failed", { error: err.message });
+    res.status(500).json({ success: false, error: "Billing cron failed" });
+  }
+});
+router2.post("/admin/subscription-plans", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const parsed = subscriptionPlanSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+    const d = parsed.data;
+    const id = uuidv43();
+    await sql2(
+      `INSERT INTO public.subscription_plans (id, name, slug, description, price, interval, features, item_count_min, item_count_max, is_active, display_order, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now())`,
+      [id, d.name, d.slug, d.description || null, d.price, d.interval, JSON.stringify(d.features || []), d.itemCountMin, d.itemCountMax, d.isActive, d.displayOrder]
+    );
+    const plan = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
+    res.status(201).json({ success: true, data: fixNumeric(plan[0]) });
+  } catch (err) {
+    logger.error("Failed to create plan", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to create plan" });
+  }
+});
+router2.put("/admin/subscription-plans/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fields = [];
+    const values = [];
+    let idx = 1;
+    if (req.body.name !== void 0) {
+      fields.push(`name = $${idx++}`);
+      values.push(req.body.name);
+    }
+    if (req.body.slug !== void 0) {
+      fields.push(`slug = $${idx++}`);
+      values.push(req.body.slug);
+    }
+    if (req.body.description !== void 0) {
+      fields.push(`description = $${idx++}`);
+      values.push(req.body.description);
+    }
+    if (req.body.price !== void 0) {
+      fields.push(`price = $${idx++}`);
+      values.push(req.body.price);
+    }
+    if (req.body.interval !== void 0) {
+      fields.push(`interval = $${idx++}`);
+      values.push(req.body.interval);
+    }
+    if (req.body.features !== void 0) {
+      fields.push(`features = $${idx++}`);
+      values.push(JSON.stringify(req.body.features));
+    }
+    if (req.body.item_count_min !== void 0) {
+      fields.push(`item_count_min = $${idx++}`);
+      values.push(req.body.item_count_min);
+    }
+    if (req.body.item_count_max !== void 0) {
+      fields.push(`item_count_max = $${idx++}`);
+      values.push(req.body.item_count_max);
+    }
+    if (req.body.is_active !== void 0) {
+      fields.push(`is_active = $${idx++}`);
+      values.push(req.body.is_active);
+    }
+    if (req.body.display_order !== void 0) {
+      fields.push(`display_order = $${idx++}`);
+      values.push(req.body.display_order);
+    }
+    if (fields.length === 0) return res.status(400).json({ success: false, error: "No fields to update" });
+    fields.push(`updated_at = $${idx++}`);
+    values.push((/* @__PURE__ */ new Date()).toISOString());
+    values.push(id);
+    await sql2(`UPDATE public.subscription_plans SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const plan = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
+    res.json({ success: true, data: fixNumeric(plan[0]) });
+  } catch (err) {
+    logger.error("Failed to update plan", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to update plan" });
+  }
+});
+router2.delete("/admin/subscription-plans/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    await sql2("UPDATE public.subscription_plans SET is_active = false, updated_at = now() WHERE id = $1", [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to deactivate plan", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to deactivate plan" });
+  }
+});
+router2.get("/admin/subscription-orders", authenticate, requireAdmin, async (_req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT so.*, sp.name as plan_name, p.display_name, p.email
+       FROM public.subscription_orders so
+       JOIN public.subscriptions s ON so.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       LEFT JOIN public.profiles p ON so.user_id = p.user_id
+       ORDER BY so.created_at DESC`
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch subscription orders", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch subscription orders" });
+  }
+});
+router2.put("/admin/subscription-orders/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fields = [];
+    const values = [];
+    let idx = 1;
+    if (req.body.status !== void 0) {
+      fields.push(`status = $${idx++}`);
+      values.push(req.body.status);
+    }
+    if (req.body.items !== void 0) {
+      fields.push(`items = $${idx++}`);
+      values.push(JSON.stringify(req.body.items));
+    }
+    if (req.body.tracking_number !== void 0) {
+      fields.push(`tracking_number = $${idx++}`);
+      values.push(req.body.tracking_number);
+    }
+    if (req.body.notes !== void 0) {
+      fields.push(`notes = $${idx++}`);
+      values.push(req.body.notes);
+    }
+    if (req.body.status === "shipped") {
+      fields.push(`shipped_at = $${idx++}`);
+      values.push((/* @__PURE__ */ new Date()).toISOString());
+    }
+    if (req.body.status === "delivered") {
+      fields.push(`delivered_at = $${idx++}`);
+      values.push((/* @__PURE__ */ new Date()).toISOString());
+    }
+    fields.push(`updated_at = $${idx++}`);
+    values.push((/* @__PURE__ */ new Date()).toISOString());
+    values.push(id);
+    await sql2(`UPDATE public.subscription_orders SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const order = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
+    res.json({ success: true, data: fixNumeric(order[0]) });
+  } catch (err) {
+    logger.error("Failed to update order", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to update order" });
+  }
+});
+router2.get("/admin/style-quizzes", authenticate, requireAdmin, async (_req, res) => {
+  try {
+    const rows = await sql2(
+      `SELECT sq.*, p.display_name, p.email
+       FROM public.style_quizzes sq
+       LEFT JOIN public.profiles p ON sq.user_id = p.user_id
+       ORDER BY sq.created_at DESC`
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err) {
+    logger.error("Failed to fetch quizzes", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch quizzes" });
+  }
+});
+var subscription_routes_default = router2;
+
+// server/wishlist-notification-routes.ts
+import { Router as Router3 } from "express";
+import { neon as neon3 } from "@neondatabase/serverless";
+var _sql3 = null;
+async function sql3(query, params) {
+  if (!_sql3) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL is not set");
+    _sql3 = neon3(url);
+  }
+  return await _sql3.query(query, params || []);
+}
+var router3 = Router3();
+router3.get("/wishlist", authenticate, async (req, res) => {
+  try {
+    const rows = await sql3(
+      `SELECT w.*, p.name, p.slug, p.price, p.images, p.tier, p.sizes, p.colors, p.brand, p.in_stock
+       FROM public.wishlists w
+       JOIN public.products p ON w.product_id = p.id
+       WHERE w.user_id = $1
+       ORDER BY w.created_at DESC`,
+      [req.userId]
+    );
+    const data = rows.map((r) => ({
+      ...r,
+      images: typeof r.images === "string" ? JSON.parse(r.images) : r.images,
+      sizes: typeof r.sizes === "string" ? JSON.parse(r.sizes) : r.sizes,
+      colors: typeof r.colors === "string" ? JSON.parse(r.colors) : r.colors
+    }));
+    res.json({ success: true, data });
+  } catch (err) {
+    logger.error("Failed to fetch wishlist", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch wishlist" });
+  }
+});
+router3.post("/wishlist", authenticate, async (req, res) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ success: false, error: "Product ID required" });
+    const existing = await sql3("SELECT id FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, productId]);
+    if (existing[0]) return res.status(409).json({ success: false, error: "Already in wishlist" });
+    const id = uuidv4();
+    await sql3(
+      "INSERT INTO public.wishlists (id, user_id, product_id, created_at) VALUES ($1, $2, $3, now())",
+      [id, req.userId, productId]
+    );
+    res.status(201).json({ success: true, data: { id, product_id: productId } });
+  } catch (err) {
+    logger.error("Failed to add to wishlist", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to add to wishlist" });
+  }
+});
+router3.delete("/wishlist/:productId", authenticate, async (req, res) => {
+  try {
+    await sql3("DELETE FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, req.params.productId]);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to remove from wishlist", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to remove from wishlist" });
+  }
+});
+router3.get("/notifications", authenticate, async (req, res) => {
+  try {
+    const rows = await sql3(
+      "SELECT * FROM public.notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50",
+      [req.userId]
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    logger.error("Failed to fetch notifications", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch notifications" });
+  }
+});
+router3.get("/notifications/unread-count", authenticate, async (req, res) => {
+  try {
+    const rows = await sql3(
+      "SELECT COUNT(*)::int as count FROM public.notifications WHERE user_id = $1 AND read = false",
+      [req.userId]
+    );
+    res.json({ success: true, data: { count: rows[0]?.count || 0 } });
+  } catch (err) {
+    logger.error("Failed to count notifications", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to count notifications" });
+  }
+});
+router3.put("/notifications/:id/read", authenticate, async (req, res) => {
+  try {
+    await sql3("UPDATE public.notifications SET read = true WHERE id = $1 AND user_id = $2", [req.params.id, req.userId]);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to mark notification read", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to mark notification" });
+  }
+});
+router3.put("/notifications/read-all", authenticate, async (req, res) => {
+  try {
+    await sql3("UPDATE public.notifications SET read = true WHERE user_id = $1 AND read = false", [req.userId]);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to mark all read", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to mark all read" });
+  }
+});
+async function createNotification(userId, type, title, message, data) {
+  try {
+    await sql3(
+      "INSERT INTO public.notifications (id, user_id, type, title, message, data, created_at) VALUES ($1, $2, $3, $4, $5, $6, now())",
+      [uuidv4(), userId, type, title, message, data ? JSON.stringify(data) : null]
+    );
+  } catch (err) {
+    logger.error("Failed to create notification", { error: err });
+  }
+}
+router3.get("/monthly-box/current", authenticate, async (req, res) => {
+  try {
+    const now = /* @__PURE__ */ new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    const rows = await sql3(
+      `SELECT mb.*, sp.name as plan_name, sp.price as plan_price, sp.item_count_min, sp.item_count_max
+       FROM public.monthly_boxes mb
+       JOIN public.subscriptions s ON mb.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.user_id = $1 AND mb.month >= $2 AND mb.month <= $3
+       ORDER BY mb.created_at DESC LIMIT 1`,
+      [req.userId, monthStart, monthEnd]
+    );
+    if (rows[0]) {
+      const box = rows[0];
+      box.items = typeof box.items === "string" ? JSON.parse(box.items) : box.items;
+      return res.json({ success: true, data: box });
+    }
+    const subs = await sql3(
+      `SELECT s.*, sp.name as plan_name, sp.price as plan_price, sp.item_count_min, sp.item_count_max
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.user_id = $1 AND s.status = 'active'`,
+      [req.userId]
+    );
+    if (!subs[0]) {
+      return res.json({ success: true, data: null });
+    }
+    const sub = subs[0];
+    const boxId = uuidv4();
+    await sql3(
+      `INSERT INTO public.monthly_boxes (id, subscription_id, user_id, month, items, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, '[]', 'building', now(), now())`,
+      [boxId, sub.id, req.userId, now.toISOString()]
+    );
+    res.json({
+      success: true,
+      data: {
+        id: boxId,
+        subscription_id: sub.id,
+        plan_name: sub.plan_name,
+        plan_price: Number(sub.price),
+        item_count_min: sub.item_count_min,
+        item_count_max: sub.item_count_max,
+        items: [],
+        status: "building",
+        month: now.toISOString()
+      }
+    });
+  } catch (err) {
+    logger.error("Failed to get current box", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to get current box" });
+  }
+});
+router3.put("/monthly-box/:id", authenticate, async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items)) return res.status(400).json({ success: false, error: "Items must be an array" });
+    await sql3(
+      "UPDATE public.monthly_boxes SET items = $1, updated_at = now() WHERE id = $2 AND user_id = $3",
+      [JSON.stringify(items), req.params.id, req.userId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to update box", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to update box" });
+  }
+});
+router3.post("/monthly-box/:id/confirm", authenticate, async (req, res) => {
+  try {
+    await sql3(
+      "UPDATE public.monthly_boxes SET status = 'confirmed', updated_at = now() WHERE id = $1 AND user_id = $2",
+      [req.params.id, req.userId]
+    );
+    await createNotification(req.userId, "box_confirmed", "Box Confirmed!", "Your monthly box has been confirmed and is being prepared.");
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to confirm box", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to confirm box" });
+  }
+});
+router3.post("/admin/notifications/send", async (req, res) => {
+  try {
+    const { userId, type, title, message } = req.body;
+    if (!userId || !title || !message) {
+      return res.status(400).json({ success: false, error: "userId, title, and message required" });
+    }
+    await createNotification(userId, type || "admin", title, message);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error("Failed to send notification", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to send notification" });
+  }
+});
+router3.post("/admin/notifications/broadcast", async (req, res) => {
+  try {
+    const { type, title, message } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ success: false, error: "title and message required" });
+    }
+    const subs = await sql3("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
+    let sent = 0;
+    for (const sub of subs) {
+      await createNotification(sub.user_id, type || "announcement", title, message);
+      sent++;
+    }
+    res.json({ success: true, data: { sent } });
+  } catch (err) {
+    logger.error("Failed to broadcast", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to broadcast" });
+  }
+});
+var wishlist_notification_routes_default = router3;
+
 // server/app.ts
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 function createApp() {
@@ -1268,6 +2149,8 @@ function createApp() {
   app2.use(cookieParser());
   app2.use("/api", generalLimiter);
   app2.use("/api", routes_default);
+  app2.use("/api", subscription_routes_default);
+  app2.use("/api", wishlist_notification_routes_default);
   const uploadDir = path.resolve(__dirname, "..", "uploads");
   app2.use("/uploads", express.static(uploadDir));
   const staticPath = process.env.NODE_ENV === "production" ? path.resolve(__dirname, "public") : path.resolve(__dirname, "..", "dist", "public");
