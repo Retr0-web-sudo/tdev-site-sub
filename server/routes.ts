@@ -44,7 +44,7 @@ import {
 import { logger } from './logger';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
+if (!JWT_SECRET) console.warn('⚠️  JWT_SECRET not set — auth will not work');
 
 // Lazy SQL client — initialized when first route is hit (dotenv already loaded by then)
 // neon only supports tagged templates or .query() — we use .query() for all calls

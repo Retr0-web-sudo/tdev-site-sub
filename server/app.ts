@@ -11,8 +11,8 @@ import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import * as Sentry from '@sentry/node';
 import routes from './routes';
-// import subscriptionRoutes from './subscription-routes';
-// import wishlistNotificationRoutes from './wishlist-notification-routes';
+import subscriptionRoutes from './subscription-routes';
+import wishlistNotificationRoutes from './wishlist-notification-routes';
 import { errorHandler, generalLimiter, requestId } from './middleware';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -63,8 +63,8 @@ export function createApp() {
 
   // ── API Routes ──
   app.use('/api', routes);
-  // app.use('/api', subscriptionRoutes);
-  // app.use('/api', wishlistNotificationRoutes);
+  app.use('/api', subscriptionRoutes);
+  app.use('/api', wishlistNotificationRoutes);
 
   // ── Serve uploads directory ──
   const uploadDir = path.resolve(__dirname, '..', 'uploads');
