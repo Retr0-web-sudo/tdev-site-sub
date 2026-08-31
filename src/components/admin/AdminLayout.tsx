@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { BarChart3, Palette, Type, Grid3X3, Lightbulb, Package, UserPlus, LogOut, ExternalLink, Megaphone, FileText, BookOpen, Image, CreditCard, ClipboardList, Mail, Shirt, Gamepad2, Printer } from "lucide-react";
+import { BarChart3, Palette, Type, Grid3X3, Lightbulb, Package, UserPlus, LogOut, ExternalLink, Megaphone, FileText, BookOpen, Image, CreditCard, ClipboardList, Mail, Shirt, Gamepad2, Printer, Repeat } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminThemeFonts from "./AdminThemeFonts";
 import AdminSiteContent from "./AdminSiteContent";
@@ -17,6 +17,7 @@ import AdminMessages from "./AdminMessages";
 import AdminDesignRequests from "./AdminDesignRequests";
 import AdminGameSettings from "./AdminGameSettings";
 import AdminPrintify from "./AdminPrintify";
+import AdminSubscriptions from "./AdminSubscriptions";
 
 const tabs = [
   { id: "analytics", label: "Analytics", icon: BarChart3 },
@@ -26,6 +27,7 @@ const tabs = [
   { id: "blog", label: "Blog", icon: FileText },
   { id: "carousels", label: "Carousels", icon: Image },
   { id: "inventory", label: "Inventory", icon: Package },
+  { id: "subscriptions", label: "Subscriptions", icon: Repeat },
   { id: "orders", label: "Orders", icon: ClipboardList },
   { id: "philosophy", label: "Philosophy", icon: Lightbulb },
   { id: "payments", label: "Payments", icon: CreditCard },
@@ -50,6 +52,7 @@ const AdminLayout = () => {
       case "blog": return <AdminBlog />;
       case "carousels": return <AdminCarousels />;
       case "inventory": return <AdminInventory />;
+      case "subscriptions": return <AdminSubscriptions />;
       case "orders": return <AdminOrders />;
       case "philosophy": return <AdminPhilosophy />;
       case "payments": return <AdminPaymentGateways />;
