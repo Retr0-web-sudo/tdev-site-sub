@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600&family=Pacifico&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 30% 96%;
+    --foreground: 30 10% 12%;
+
+    --card: 35 25% 93%;
+    --card-foreground: 30 10% 12%;
+
+    --popover: 35 30% 96%;
+    --popover-foreground: 30 10% 12%;
+
+    --primary: 30 10% 12%;
+    --primary-foreground: 35 30% 96%;
+
+    --secondary: 33 20% 88%;
+    --secondary-foreground: 30 10% 12%;
+
+    --muted: 33 15% 90%;
+    --muted-foreground: 30 8% 45%;
+
+    --accent: 28 40% 50%;
+    --accent-foreground: 35 30% 96%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 33 15% 85%;
+    --input: 33 15% 85%;
+    --ring: 28 40% 50%;
+
+    --radius: 0.25rem;
+
+    --sidebar-background: 35 25% 93%;
+    --sidebar-foreground: 30 10% 12%;
+    --sidebar-primary: 30 10% 12%;
+    --sidebar-primary-foreground: 35 30% 96%;
+    --sidebar-accent: 33 20% 88%;
+    --sidebar-accent-foreground: 30 10% 12%;
+    --sidebar-border: 33 15% 85%;
+    --sidebar-ring: 28 40% 50%;
+
+    /* Custom tokens */
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Outfit', sans-serif;
+    --warm: 30 25% 80%;
+    --warm-dark: 25 15% 25%;
+    --neon: 165 100% 50%;
+    --neon-glow: 0 0 8px hsl(165 100% 50% / 0.5), 0 0 20px hsl(165 100% 50% / 0.2);
+    --neon-glow-strong: 0 0 10px hsl(165 100% 50% / 0.6), 0 0 30px hsl(165 100% 50% / 0.3), 0 0 60px hsl(165 100% 50% / 0.1);
+  }
+
+  .dark {
+    --background: 25 15% 8%;
+    --foreground: 35 20% 90%;
+    --card: 25 15% 12%;
+    --card-foreground: 35 20% 90%;
+    --popover: 25 15% 8%;
+    --popover-foreground: 35 20% 90%;
+    --primary: 35 20% 90%;
+    --primary-foreground: 25 15% 8%;
+    --secondary: 25 12% 18%;
+    --secondary-foreground: 35 20% 90%;
+    --muted: 25 12% 18%;
+    --muted-foreground: 30 10% 55%;
+    --accent: 28 40% 50%;
+    --accent-foreground: 35 30% 96%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 25 12% 20%;
+    --input: 25 12% 20%;
+    --ring: 28 40% 50%;
+    --sidebar-background: 25 15% 10%;
+    --sidebar-foreground: 35 20% 90%;
+    --sidebar-primary: 35 20% 90%;
+    --sidebar-primary-foreground: 25 15% 8%;
+    --sidebar-accent: 25 12% 18%;
+    --sidebar-accent-foreground: 35 20% 90%;
+    --sidebar-border: 25 12% 20%;
+    --sidebar-ring: 28 40% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .nav-link {
+    @apply text-foreground/60 hover:text-foreground transition-all duration-300 text-[11px] tracking-[0.22em] uppercase;
+    font-family: var(--font-body);
+    font-weight: 400;
+    position: relative;
+  }
+
+  .nav-hero .nav-link {
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .nav-hero .nav-link:hover {
+    color: hsl(var(--neon));
+    text-shadow: var(--neon-glow-strong), 0 2px 12px rgba(0, 0, 0, 0.7);
+  }
+
+  .nav-hero .text-foreground {
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0%;
+    height: 1px;
+    background: hsl(var(--neon));
+    transition: width 0.3s ease;
+  }
+
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  .nav-link:hover {
+    text-shadow: var(--neon-glow);
+    color: hsl(var(--neon));
+  }
+
+  .nav-link-active {
+    color: hsl(var(--neon));
+    text-shadow: var(--neon-glow);
+  }
+
+  .nav-link-active::after {
+    width: 100%;
+  }
+
+  .heading-display {
+    font-family: var(--font-display);
+    @apply text-foreground;
+  }
+
+  .section-padding {
+    @apply px-6 md:px-12 lg:px-24;
+  }
+
+  .image-hover {
+    @apply overflow-hidden;
+  }
+
+  .image-hover img {
+    @apply transition-transform duration-700 ease-out hover:scale-105;
+  }
+
+  /* Neon utility classes */
+  .neon-border {
+    border-color: hsl(var(--neon) / 0.4);
+    box-shadow: var(--neon-glow);
+  }
+
+  .neon-border:hover {
+    border-color: hsl(var(--neon) / 0.7);
+    box-shadow: var(--neon-glow-strong);
+  }
+
+  .neon-text {
+    color: hsl(var(--neon));
+    text-shadow: var(--neon-glow);
+  }
+
+  .neon-underline {
+    text-decoration-color: hsl(var(--neon) / 0.6);
+    text-underline-offset: 6px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

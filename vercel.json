@@ -1,0 +1,8 @@
+{
+  "buildCommand": "vite build && node scripts/build-api.cjs",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/api(/.*)?", "destination": "/api/compiled" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

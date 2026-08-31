@@ -1,0 +1,19 @@
+# TDEV
+
+> Sustainable fashion rooted in nature, refined by design. Explore the Global, Femme, and Homme collections.
+
+## Pages
+
+- [Home](/): Brand overview and featured collections.
+- [Shop](/shop): Browse all collections (Femme, Homme, Global).
+- [Femme Collection](/category/femme): Womenswear — Spring 2026.
+- [Homme Collection](/category/homme): Refined menswear.
+- [Global Collection](/category/global): Raw materials and global influences.
+- [Journal](/blog): Stories, style notes, and brand updates.
+- [Customize](/customize): Design your own custom shirt.
+- [Games](/games): Play to win discount codes.
+- [Contact](/contact): Get in touch with our team.
+
+## Optional
+
+- [Wishlist](/wishlist): Saved items (per-user, local).

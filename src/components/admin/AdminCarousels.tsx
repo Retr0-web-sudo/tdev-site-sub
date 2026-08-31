@@ -1,0 +1,225 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, GripVertical, Image as ImageIcon, Save } from "lucide-react";
+import { toast } from "sonner";
+
+interface CarouselSlide {
+  image_url: string;
+  alt_text: string;
+}
+
+interface CarouselConfig {
+  femme: CarouselSlide[];
+  homme: CarouselSlide[];
+  global: CarouselSlide[];
+}
+
+const defaultConfig: CarouselConfig = {
+  femme: [],
+  homme: [],
+  global: [],
+};
+
+const AdminCarousels = () => {
+  const [config, setConfig] = useState<CarouselConfig>(defaultConfig);
+  const [activeCategory, setActiveCategory] = useState<keyof CarouselConfig>("femme");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    const { data } = await supabase
+      .from("site_settings")
+      .select("*")
+      .eq("key", "carousel_images")
+      .single();
+    if (data?.value && typeof data.value === "object" && !Array.isArray(data.value)) {
+      const val = data.value as Record<string, unknown>;
+      setConfig({
+        femme: (val.femme as CarouselSlide[]) || [],
+        homme: (val.homme as CarouselSlide[]) || [],
+        global: (val.global as CarouselSlide[]) || [],
+      });
+    }
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const val = JSON.parse(JSON.stringify(config));
+      const { data: existing } = await supabase
+        .from("site_settings")
+        .select("id")
+        .eq("key", "carousel_images")
+        .single();
+
+      if (existing) {
+        await supabase
+          .from("site_settings")
+          .update({ value: val })
+          .eq("key", "carousel_images");
+      } else {
+        await supabase
+          .from("site_settings")
+          .insert([{ key: "carousel_images", value: val }]);
+      }
+      toast.success("Carousel images saved");
+    } catch {
+      toast.error("Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addSlide = () => {
+    setConfig((prev) => ({
+      ...prev,
+      [activeCategory]: [...prev[activeCategory], { image_url: "", alt_text: "" }],
+    }));
+  };
+
+  const removeSlide = (index: number) => {
+    setConfig((prev) => ({
+      ...prev,
+      [activeCategory]: prev[activeCategory].filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateSlide = (index: number, field: keyof CarouselSlide, value: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      [activeCategory]: prev[activeCategory].map((slide, i) =>
+        i === index ? { ...slide, [field]: value } : slide
+      ),
+    }));
+  };
+
+  const slides = config[activeCategory];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-display text-2xl font-light">Carousel Images</h2>
+          <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mt-1">
+            Manage hero carousel images for each category page
+          </p>
+        </div>
+        <Button
+          onClick={save}
+          disabled={saving}
+          className="bg-accent text-accent-foreground hover:bg-accent/90 font-body text-xs tracking-wider"
+        >
+          <Save size={14} className="mr-1" />
+          {saving ? "Saving..." : "Save All"}
+        </Button>
+      </div>
+
+      {/* Category tabs */}
+      <div className="flex gap-2 mb-6">
+        {(["femme", "homme", "global"] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-2 rounded-md font-body text-xs tracking-wider capitalize transition-colors ${
+              activeCategory === cat
+                ? "bg-accent text-accent-foreground"
+                : "text-[hsl(35,20%,90%)]/50 hover:text-[hsl(35,20%,90%)]/80 hover:bg-[hsl(25,12%,14%)]"
+            }`}
+          >
+            {cat} ({config[cat].length})
+          </button>
+        ))}
+      </div>
+
+      {/* Slides list */}
+      <div className="space-y-4 mb-6">
+        {slides.length === 0 ? (
+          <div className="border border-dashed border-[hsl(25,12%,20%)] rounded-lg p-12 text-center">
+            <ImageIcon size={32} className="mx-auto mb-3 text-[hsl(35,20%,90%)]/20" />
+            <p className="font-body text-sm text-[hsl(35,20%,90%)]/30">
+              No carousel images for {activeCategory}
+            </p>
+            <p className="font-body text-xs text-[hsl(35,20%,90%)]/20 mt-1">
+              Add image URLs to create carousel slides. Falls back to default images if empty.
+            </p>
+          </div>
+        ) : (
+          slides.map((slide, index) => (
+            <div
+              key={index}
+              className="border border-[hsl(25,12%,20%)] rounded-lg p-4 bg-[hsl(25,15%,10%)] flex gap-4 items-start"
+            >
+              <GripVertical size={16} className="text-[hsl(35,20%,90%)]/20 mt-2 shrink-0" />
+
+              {/* Preview */}
+              <div className="w-24 h-16 bg-[hsl(25,15%,12%)] rounded overflow-hidden shrink-0">
+                {slide.image_url ? (
+                  <img
+                    src={slide.image_url}
+                    alt={slide.alt_text}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon size={16} className="text-[hsl(35,20%,90%)]/20" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                    Image URL
+                  </Label>
+                  <Input
+                    value={slide.image_url}
+                    onChange={(e) => updateSlide(index, "image_url", e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                    Alt Text
+                  </Label>
+                  <Input
+                    value={slide.alt_text}
+                    onChange={(e) => updateSlide(index, "alt_text", e.target.value)}
+                    placeholder="Description of the image"
+                    className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={() => removeSlide(index)}
+                className="text-[hsl(35,20%,90%)]/40 hover:text-destructive transition-colors mt-2"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <Button
+        onClick={addSlide}
+        variant="outline"
+        className="border-[hsl(25,12%,20%)] text-[hsl(35,20%,90%)]/60 font-body text-xs tracking-wider"
+      >
+        <Plus size={14} className="mr-1" /> Add Slide
+      </Button>
+    </div>
+  );
+};
+
+export default AdminCarousels;
