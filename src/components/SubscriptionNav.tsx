@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 
 const subNavItems = [
   { label: "Plans", href: "/subscription/plans" },
-  { label: "Catalog", href: "/catalog" },
+  { label: "Catalog", href: "/shop" },
   { label: "My Box", href: "/subscription/dashboard" },
+  { label: "Wishlist", href: "/wishlist" },
 ];
 
 const SubscriptionNav = () => {

@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
-  { label: "Catalog", href: "/catalog" },
+  { label: "Catalog", href: "/shop" },
   { label: "Plans", href: "/subscription/plans" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Journal", href: "/blog" },

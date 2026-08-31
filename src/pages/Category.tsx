@@ -163,8 +163,8 @@ const Category = () => {
       )}
 
       <main id="products" className={`section-padding pb-16 sm:pb-20 ${slides ? 'pt-8 sm:pt-12' : 'pt-20 md:pt-24'}`}>
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-body text-sm tracking-wider mb-8">
-          <ArrowLeft size={16} /> Back to Home
+        <Link to="/shop" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-body text-sm tracking-wider mb-8">
+          <ArrowLeft size={16} /> Back to Collections
         </Link>
 
         {!slides && catLoading ? (

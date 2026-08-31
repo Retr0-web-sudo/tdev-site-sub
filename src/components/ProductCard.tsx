@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Heart } from "lucide-react";
+import { ArrowUpRight, Heart, Lock } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useWishlist } from "@/hooks/useWishlist";
+
+const TIER_STYLES: Record<string, { label: string; bg: string; text: string }> = {
+  essentials: { label: "Essentials", bg: "bg-secondary/80", text: "text-muted-foreground" },
+  premium: { label: "Premium", bg: "bg-accent/15", text: "text-accent" },
+  luxe: { label: "Luxe", bg: "bg-amber-500/15", text: "text-amber-400" },
+};
 
 interface ProductCardProps {
   product: Tables<"products">;
@@ -13,6 +19,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
   const { isInWishlist, toggleWishlist } = useWishlist();
   const wishlisted = isInWishlist(product.id);
+  const tier = (product as any).tier || "essentials";
+  const tierStyle = TIER_STYLES[tier] || TIER_STYLES.essentials;
 
   return (
     <motion.div
@@ -55,7 +63,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Heart
               size={15}
               className={`transition-colors duration-300 ${
-                wishlisted ? "fill-accent text-accent" : "text-foreground"
+                wishlisted ? "fill-red-400 text-red-400" : "text-foreground"
               }`}
             />
           </button>
@@ -67,6 +75,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            {/* Tier badge */}
+            <span className={`${tierStyle.bg} ${tierStyle.text} text-[9px] font-body font-semibold tracking-wider uppercase px-2.5 py-1 backdrop-blur-sm`}>
+              {tier === "luxe" && <Lock size={8} className="inline mr-1" />}
+              {tierStyle.label}
+            </span>
             {hasDiscount && (
               <span className="bg-accent text-accent-foreground text-[9px] font-body font-semibold tracking-wider uppercase px-2.5 py-1">
                 Sale
@@ -86,16 +99,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Details */}
         <div className="space-y-1">
-          <h3 className="font-display text-base font-normal text-foreground group-hover:text-neon transition-colors duration-300 leading-snug">
+          <h3 className="font-display text-base font-normal text-foreground group-hover:text-accent transition-colors duration-300 leading-snug">
             {product.name}
           </h3>
           <div className="flex items-baseline gap-2.5">
             <span className={`font-body text-sm ${hasDiscount ? "text-accent font-medium" : "text-muted-foreground"}`}>
-              ${product.price.toFixed(2)}
+              GH¢ {Number(product.price).toFixed(2)}
             </span>
             {hasDiscount && (
               <span className="font-body text-xs text-muted-foreground/60 line-through">
-                ${product.compare_at_price!.toFixed(2)}
+                GH¢ {Number(product.compare_at_price).toFixed(2)}
               </span>
             )}
           </div>
