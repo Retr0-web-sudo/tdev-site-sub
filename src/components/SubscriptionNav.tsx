@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const subNavItems = [
   { label: "Plans", href: "/subscription/plans" },
-  { label: "Style Quiz", href: "/subscription/quiz" },
+  { label: "Catalog", href: "/catalog" },
   { label: "My Box", href: "/subscription/dashboard" },
 ];
 

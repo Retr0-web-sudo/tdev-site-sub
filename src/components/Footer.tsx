@@ -19,11 +19,10 @@ type ContactSettings = {
 
 const DEFAULTS: ContactSettings = {
   email: "hello@tdev.fashion",
-  location: "Paris, France",
+  location: "Accra, Ghana",
   social: {},
 };
 
-// TikTok inline icon (lucide doesn't ship one)
 const TikTokIcon = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V9.01a8.16 8.16 0 0 0 4.77 1.52V7.1a4.85 4.85 0 0 1-1.84-.41Z" />
@@ -71,32 +70,23 @@ const Footer = () => {
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        {/* Brand column */}
         <div className="col-span-2">
           <span className="text-2xl sm:text-3xl text-primary-foreground/90 mb-4 sm:mb-5 block" style={{ fontFamily: "'Pacifico', cursive" }}>Drip</span>
           <p className="font-body text-xs sm:text-sm text-primary-foreground/50 leading-[1.8] max-w-xs">
-            Sustainable fashion rooted in natural materials and modern design.
-            From field to fabric, from concept to closet.
+            Curated fashion delivered monthly. Sustainable style, chosen for you.
           </p>
         </div>
 
-        {/* Navigation */}
         <div>
-          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">
-            Explore
-          </p>
+          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">Subscribe</p>
           <div className="flex flex-col gap-2 sm:gap-3">
             {[
-              { label: "Femme", href: "/category/femme" },
-              { label: "Homme", href: "/category/homme" },
-              { label: "Global", href: "/category/global" },
-              { label: "About", href: "#about" },
+              { label: "View Plans", href: "/subscription/plans" },
+              { label: "Browse Catalog", href: "/catalog" },
+              { label: "How It Works", href: "/#how-it-works" },
+              { label: "My Dashboard", href: "/subscription/dashboard" },
             ].map((link) => (
-              <Link
-                key={link.label}
-                to={link.href}
-                className="group font-body text-xs sm:text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors duration-300 inline-flex items-center gap-1.5 w-fit"
-              >
+              <Link key={link.label} to={link.href} className="group font-body text-xs sm:text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors duration-300 inline-flex items-center gap-1.5 w-fit">
                 {link.label}
                 <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </Link>
@@ -104,29 +94,16 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Contact */}
         <div>
-          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">
-            Contact
-          </p>
+          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">Contact</p>
           <div className="flex flex-col gap-2 sm:gap-3 font-body text-xs sm:text-sm text-primary-foreground/60">
-            <a href={`mailto:${contact.email}`} className="hover:text-primary-foreground transition-colors duration-300 break-all">
-              {contact.email}
-            </a>
+            <a href={`mailto:${contact.email}`} className="hover:text-primary-foreground transition-colors duration-300 break-all">{contact.email}</a>
             <span>{contact.location}</span>
           </div>
-
           {activeSocials.length > 0 && (
             <div className="flex flex-wrap gap-3 mt-5">
               {activeSocials.map(({ key, label, Icon }) => (
-                <a
-                  key={key}
-                  href={contact.social[key]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="text-primary-foreground/50 hover:text-primary-foreground transition-colors duration-300"
-                >
+                <a key={key} href={contact.social[key]} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-primary-foreground/50 hover:text-primary-foreground transition-colors duration-300">
                   <Icon size={16} />
                 </a>
               ))}
@@ -137,15 +114,8 @@ const Footer = () => {
 
       <div className="mt-12 sm:mt-20 pt-6 sm:pt-8 border-t border-primary-foreground/8 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          <p className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 tracking-wider text-center sm:text-left">
-            © 2026 TDEV. All rights reserved.
-          </p>
-          <Link
-            to="/admin"
-            className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 hover:text-primary-foreground/50 tracking-wider transition-colors"
-          >
-            Admin
-          </Link>
+          <p className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 tracking-wider text-center sm:text-left">© 2026 TDEV. All rights reserved.</p>
+          <Link to="/admin" className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 hover:text-primary-foreground/50 tracking-wider transition-colors">Admin</Link>
         </div>
       </div>
     </footer>

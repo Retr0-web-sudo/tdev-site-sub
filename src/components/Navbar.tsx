@@ -1,44 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCart } from "@/hooks/useCart";
-import { useWishlist } from "@/hooks/useWishlist";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { label: "Femme", href: "/category/femme" },
-  { label: "Homme", href: "/category/homme" },
-  { label: "Global", href: "/category/global" },
-  { label: "Subscribe", href: "/subscription/plans" },
+  { label: "Catalog", href: "/catalog" },
+  { label: "Plans", href: "/subscription/plans" },
+  { label: "How It Works", href: "/#how-it-works" },
   { label: "Journal", href: "/blog" },
-  { label: "About", href: "/#about" },
-  { label: "Arcade", href: "/games" },
   { label: "Contact", href: "/#contact" },
 ];
-
-const ToteIcon = ({ count }: { count: number }) => (
-  <div className="relative">
-    <svg width="22" height="24" viewBox="0 0 22 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className="transition-colors duration-300">
-      <path d="M3 8h16l-1.5 14H4.5L3 8z" />
-      <path d="M7.5 8V5.5a3.5 3.5 0 0 1 7 0V8" />
-    </svg>
-    {count > 0 && (
-      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-accent text-accent-foreground text-[9px] font-body font-semibold rounded-full flex items-center justify-center px-1">
-        {count}
-      </motion.span>
-    )}
-  </div>
-);
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { openCart, totalItems } = useCart();
-  const { totalItems: wishlistTotal } = useWishlist();
+  const { user, isAdmin } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    // Always use dark mode
     document.documentElement.classList.add("dark");
     localStorage.setItem("tdev-theme", "dark");
   }, []);
@@ -79,19 +59,16 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-
-          <Link to="/wishlist" className="relative text-foreground hover:text-accent transition-all duration-300 hover:scale-105" aria-label="Wishlist">
-            <Heart size={18} />
-            {wishlistTotal > 0 && (
-              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1.5 -right-2.5 min-w-[16px] h-[16px] bg-accent text-accent-foreground text-[8px] font-body font-semibold rounded-full flex items-center justify-center px-0.5">
-                {wishlistTotal}
-              </motion.span>
-            )}
-          </Link>
-
-          <button onClick={openCart} className="text-foreground hover:text-accent transition-all duration-300 hover:scale-105" aria-label="Open cart">
-            <ToteIcon count={totalItems} />
-          </button>
+          {user ? (
+            <Link to={isAdmin ? "/admin" : "/subscription/dashboard"} className="flex items-center gap-1.5 text-foreground hover:text-accent transition-all duration-300">
+              <User size={18} />
+              <span className="hidden lg:inline text-xs font-body tracking-wider">{isAdmin ? "Admin" : "Dashboard"}</span>
+            </Link>
+          ) : (
+            <Link to="/auth" className="text-xs font-body tracking-[0.15em] uppercase text-foreground hover:text-accent transition-colors">
+              Sign In
+            </Link>
+          )}
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-foreground hover:text-accent transition-colors" aria-label="Toggle menu">
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -112,6 +89,9 @@ const Navbar = () => {
                   )}
                 </motion.div>
               ))}
+              {!user && (
+                <Link to="/auth" onClick={() => setMobileOpen(false)} className="nav-link text-xl block text-accent">Sign In</Link>
+              )}
             </div>
           </motion.div>
         )}

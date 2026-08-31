@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import HeroSection from "@/components/HeroSection";
 import CollectionsGrid from "@/components/CollectionsGrid";
-import AboutSection from "@/components/AboutSection";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 
@@ -11,8 +10,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Seo
-        title="TDEV — Sustainable Fashion, Global Collections"
-        description="Explore TDEV's Femme, Homme, and Global collections. Sustainable fashion rooted in nature, refined by design."
+        title="TDEV — Curated Fashion, Delivered Monthly"
+        description="Subscribe to TDEV. Browse our catalog, pick your outfits, and receive a curated box every month. Essentials, Premium, or Luxe."
         path="/"
         type="website"
         jsonLd={[
@@ -35,11 +34,9 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <CollectionsGrid />
-      <AboutSection />
       <Footer />
     </div>
   );
 };
 
 export default Index;
-
