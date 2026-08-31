@@ -26,6 +26,7 @@ import Games from "./pages/Games";
 import NotFound from "./pages/NotFound";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
 import StyleQuiz from "./pages/StyleQuiz";
+import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import SubscriptionDashboard from "./pages/SubscriptionDashboard";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const AppInner = () => {
         <Route path="/games" element={<Games />} />
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />
         <Route path="/subscription/quiz" element={<StyleQuiz />} />
+        <Route path="/subscription/checkout" element={<SubscriptionCheckout />} />
         <Route path="/subscription/dashboard" element={<SubscriptionDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

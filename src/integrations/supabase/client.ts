@@ -40,6 +40,7 @@ function route(table) {
     subscriptions: '/subscriptions',
     subscription_orders: '/subscription-orders',
     style_quizzes: '/style-quiz',
+    subscription_payments: '/subscription-payments',
   };
   return map[table] || '/' + table;
 }

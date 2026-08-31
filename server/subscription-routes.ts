@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { authenticate, requireAdmin, AuthRequest, cacheControl } from './middleware';
 import {
+  subscriptionPlanSchema,
   createSubscriptionSchema,
   updateSubscriptionSchema,
   styleQuizSchema,
@@ -407,6 +408,250 @@ router.get('/admin/subscription-stats', authenticate, requireAdmin, async (_req:
   } catch (err: any) {
     logger.error('Failed to fetch stats', { error: err.message });
     res.status(500).json({ success: false, error: 'Failed to fetch stats' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  PRODUCT CURATION ENGINE
+// ══════════════════════════════════════════════
+
+router.get('/subscription-plans/:slug/curate', cacheControl(60), async (req, res) => {
+  try {
+    const plans = await sql('SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true', [req.params.slug]);
+    if (!plans[0]) return res.status(404).json({ success: false, error: 'Plan not found' });
+    const plan = plans[0];
+    const maxItems = plan.item_count_max || 5;
+
+    // Get products, prioritizing featured and varied categories
+    const products = await sql(
+      `SELECT p.*, c.name as category_name
+       FROM public.products p
+       LEFT JOIN public.categories c ON p.category_id = c.id
+       WHERE p.status = 'published' AND p.in_stock = true
+       ORDER BY RANDOM()
+       LIMIT $1`,
+      [maxItems * 3]
+    );
+
+    // Simple curation: pick diverse items across categories
+    const curated: any[] = [];
+    const usedCategories = new Set<string>();
+    for (const p of products) {
+      if (curated.length >= maxItems) break;
+      if (curated.length < (plan.item_count_min || 2) || !usedCategories.has(p.category_name)) {
+        curated.push({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: Number(p.price),
+          category: p.category_name,
+          sizes: p.sizes,
+          colors: p.colors,
+        });
+        usedCategories.add(p.category_name);
+      }
+    }
+
+    res.json({ success: true, data: curated });
+  } catch (err: any) {
+    logger.error('Failed to curate products', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to curate products' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  RECURRING BILLING CRON
+// ══════════════════════════════════════════════
+
+router.post('/cron/billing', async (req, res) => {
+  // Verify cron secret
+  const secret = req.headers['x-cron-secret'];
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  try {
+    // Find subscriptions due for billing
+    const dueSubs = await sql(
+      `SELECT s.*, sp.price, sp.name as plan_name
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.status = 'active' AND s.next_billing_date <= now()`
+    );
+
+    let billed = 0;
+    let failed = 0;
+
+    for (const sub of dueSubs) {
+      try {
+        // Record payment
+        await sql(
+          `INSERT INTO public.subscription_payments (id, subscription_id, user_id, amount, currency, payment_method, status, transaction_id, paid_at, created_at)
+           VALUES ($1, $2, $3, $4, 'GHS', 'recurring', 'succeeded', $5, now(), now())`,
+          [uuidv4(), sub.id, sub.user_id, sub.price, `txn_recurring_${Date.now()}_${sub.id.slice(0, 8)}`]
+        );
+
+        // Create next order
+        await sql(
+          `INSERT INTO public.subscription_orders (id, subscription_id, user_id, status, items, amount, shipping_address, created_at, updated_at)
+           VALUES ($1, $2, $3, 'pending', '[]', $4, $5, now(), now())`,
+          [uuidv4(), sub.id, sub.user_id, sub.price, sub.shipping_address || '{}']
+        );
+
+        // Advance billing date
+        const nextDate = new Date(sub.next_billing_date);
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        await sql(
+          'UPDATE public.subscriptions SET next_billing_date = $1, current_period_end = $1, updated_at = now() WHERE id = $2',
+          [nextDate.toISOString(), sub.id]
+        );
+
+        billed++;
+      } catch (err) {
+        failed++;
+        logger.error('Billing failed for subscription', { subscriptionId: sub.id, error: err });
+      }
+    }
+
+    res.json({ success: true, data: { due: dueSubs.length, billed, failed } });
+  } catch (err: any) {
+    logger.error('Billing cron failed', { error: err.message });
+    res.status(500).json({ success: false, error: 'Billing cron failed' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  ADMIN: Plan CRUD
+// ══════════════════════════════════════════════
+
+router.post('/admin/subscription-plans', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const parsed = subscriptionPlanSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
+
+    const d = parsed.data;
+    const id = uuidv4();
+    await sql(
+      `INSERT INTO public.subscription_plans (id, name, slug, description, price, interval, features, item_count_min, item_count_max, is_active, display_order, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now())`,
+      [id, d.name, d.slug, d.description || null, d.price, d.interval, JSON.stringify(d.features || []), d.itemCountMin, d.itemCountMax, d.isActive, d.displayOrder]
+    );
+    const plan = await sql('SELECT * FROM public.subscription_plans WHERE id = $1', [id]);
+    res.status(201).json({ success: true, data: fixNumeric(plan[0]) });
+  } catch (err: any) {
+    logger.error('Failed to create plan', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to create plan' });
+  }
+});
+
+router.put('/admin/subscription-plans/:id', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (req.body.name !== undefined) { fields.push(`name = $${idx++}`); values.push(req.body.name); }
+    if (req.body.slug !== undefined) { fields.push(`slug = $${idx++}`); values.push(req.body.slug); }
+    if (req.body.description !== undefined) { fields.push(`description = $${idx++}`); values.push(req.body.description); }
+    if (req.body.price !== undefined) { fields.push(`price = $${idx++}`); values.push(req.body.price); }
+    if (req.body.interval !== undefined) { fields.push(`interval = $${idx++}`); values.push(req.body.interval); }
+    if (req.body.features !== undefined) { fields.push(`features = $${idx++}`); values.push(JSON.stringify(req.body.features)); }
+    if (req.body.item_count_min !== undefined) { fields.push(`item_count_min = $${idx++}`); values.push(req.body.item_count_min); }
+    if (req.body.item_count_max !== undefined) { fields.push(`item_count_max = $${idx++}`); values.push(req.body.item_count_max); }
+    if (req.body.is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(req.body.is_active); }
+    if (req.body.display_order !== undefined) { fields.push(`display_order = $${idx++}`); values.push(req.body.display_order); }
+
+    if (fields.length === 0) return res.status(400).json({ success: false, error: 'No fields to update' });
+
+    fields.push(`updated_at = $${idx++}`);
+    values.push(new Date().toISOString());
+    values.push(id);
+
+    await sql(`UPDATE public.subscription_plans SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+    const plan = await sql('SELECT * FROM public.subscription_plans WHERE id = $1', [id]);
+    res.json({ success: true, data: fixNumeric(plan[0]) });
+  } catch (err: any) {
+    logger.error('Failed to update plan', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to update plan' });
+  }
+});
+
+router.delete('/admin/subscription-plans/:id', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    await sql('UPDATE public.subscription_plans SET is_active = false, updated_at = now() WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err: any) {
+    logger.error('Failed to deactivate plan', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to deactivate plan' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  ADMIN: Subscription Orders Management
+// ══════════════════════════════════════════════
+
+router.get('/admin/subscription-orders', authenticate, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const rows = await sql(
+      `SELECT so.*, sp.name as plan_name, p.display_name, p.email
+       FROM public.subscription_orders so
+       JOIN public.subscriptions s ON so.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       LEFT JOIN public.profiles p ON so.user_id = p.user_id
+       ORDER BY so.created_at DESC`
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err: any) {
+    logger.error('Failed to fetch subscription orders', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch subscription orders' });
+  }
+});
+
+router.put('/admin/subscription-orders/:id', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (req.body.status !== undefined) { fields.push(`status = $${idx++}`); values.push(req.body.status); }
+    if (req.body.items !== undefined) { fields.push(`items = $${idx++}`); values.push(JSON.stringify(req.body.items)); }
+    if (req.body.tracking_number !== undefined) { fields.push(`tracking_number = $${idx++}`); values.push(req.body.tracking_number); }
+    if (req.body.notes !== undefined) { fields.push(`notes = $${idx++}`); values.push(req.body.notes); }
+
+    if (req.body.status === 'shipped') { fields.push(`shipped_at = $${idx++}`); values.push(new Date().toISOString()); }
+    if (req.body.status === 'delivered') { fields.push(`delivered_at = $${idx++}`); values.push(new Date().toISOString()); }
+
+    fields.push(`updated_at = $${idx++}`);
+    values.push(new Date().toISOString());
+    values.push(id);
+
+    await sql(`UPDATE public.subscription_orders SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+    const order = await sql('SELECT * FROM public.subscription_orders WHERE id = $1', [id]);
+    res.json({ success: true, data: fixNumeric(order[0]) });
+  } catch (err: any) {
+    logger.error('Failed to update order', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to update order' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  ADMIN: Style Quizzes
+// ══════════════════════════════════════════════
+
+router.get('/admin/style-quizzes', authenticate, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const rows = await sql(
+      `SELECT sq.*, p.display_name, p.email
+       FROM public.style_quizzes sq
+       LEFT JOIN public.profiles p ON sq.user_id = p.user_id
+       ORDER BY sq.created_at DESC`
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err: any) {
+    logger.error('Failed to fetch quizzes', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch quizzes' });
   }
 });
 

@@ -58,13 +58,14 @@ const SubscriptionDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem("tdev_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const [subRes, ordersRes] = await Promise.all([
-        supabase.from("subscriptions").select("*").limit(1),
-        supabase.from("subscription_orders").select("*").order("created_at", { ascending: false }),
+        fetch("/api/subscriptions", { headers }).then(r => r.json()),
+        fetch("/api/subscription-orders", { headers }).then(r => r.json()),
       ]);
-      const sub = subRes.data?.[0];
-      if (sub) setSubscription(sub as Subscription);
-      if (ordersRes.data) setOrders(ordersRes.data as SubOrder[]);
+      if (subRes.success && subRes.data?.[0]) setSubscription(subRes.data[0] as Subscription);
+      if (ordersRes.success) setOrders(ordersRes.data as SubOrder[]);
     } catch (err) {
       console.error("Failed to load dashboard:", err);
     } finally {
@@ -78,8 +79,14 @@ const SubscriptionDashboard = () => {
     if (!subscription) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase.from("subscriptions").update({ status: "paused" } as any).eq("id", subscription.id);
-      if (error) throw error;
+      const token = localStorage.getItem("tdev_token");
+      const res = await fetch(`/api/subscriptions/${subscription.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ status: "paused" }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
       toast({ title: "Subscription paused", description: "You can resume anytime." });
       fetchData();
     } catch (err: any) {
@@ -93,8 +100,14 @@ const SubscriptionDashboard = () => {
     if (!subscription) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase.from("subscriptions").update({ status: "active" } as any).eq("id", subscription.id);
-      if (error) throw error;
+      const token = localStorage.getItem("tdev_token");
+      const res = await fetch(`/api/subscriptions/${subscription.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ status: "active" }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
       toast({ title: "Subscription resumed!" });
       fetchData();
     } catch (err: any) {
@@ -108,11 +121,13 @@ const SubscriptionDashboard = () => {
     if (!subscription || !confirm("Are you sure you want to cancel? This cannot be undone.")) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase.from("subscriptions").update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-      } as any).eq("id", subscription.id);
-      if (error) throw error;
+      const token = localStorage.getItem("tdev_token");
+      const res = await fetch(`/api/subscriptions/${subscription.id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
       toast({ title: "Subscription cancelled" });
       fetchData();
     } catch (err: any) {

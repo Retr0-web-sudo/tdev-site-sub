@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -32,6 +32,8 @@ const SIZE_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL"];
 
 const StyleQuiz = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planId = searchParams.get("plan");
   const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +72,7 @@ const StyleQuiz = () => {
       if (error) throw error;
 
       toast({ title: "Style quiz saved!", description: "Your stylist will use this for your first box." });
-      navigate("/subscription/plans");
+      navigate(planId ? `/subscription/checkout?plan=${planId}` : "/subscription/plans");
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to save quiz", variant: "destructive" });
     } finally {

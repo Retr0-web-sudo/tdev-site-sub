@@ -138,7 +138,7 @@ const SubscriptionPlans = () => {
                   </ul>
 
                   <Link
-                    to="/subscription/quiz"
+                    to={`/subscription/quiz?plan=${plan.id}`}
                     className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-[11px] tracking-[0.15em] uppercase font-body font-medium transition-all duration-300 ${
                       isFeatured
                         ? "bg-accent text-accent-foreground hover:bg-accent/90"
