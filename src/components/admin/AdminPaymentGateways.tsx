@@ -175,7 +175,7 @@ const AdminPaymentGateways = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-2xl font-light">Payment Gateways</h2>
-          <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mt-1">
+          <p className="font-body text-sm text-muted-foreground mt-1">
             Choose and configure your preferred payment provider
           </p>
         </div>
@@ -209,15 +209,15 @@ const AdminPaymentGateways = () => {
               className={`border rounded-lg p-5 transition-colors ${
                 isActive
                   ? "border-accent/40 bg-accent/5"
-                  : "border-[hsl(25,12%,20%)] bg-[hsl(25,15%,10%)]"
+                  : "border-border bg-card"
               }`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <CreditCard size={20} className={isActive ? "text-accent" : "text-[hsl(35,20%,90%)]/40"} />
+                  <CreditCard size={20} className={isActive ? "text-accent" : "text-muted-foreground"} />
                   <div>
-                    <h3 className="font-body text-sm font-medium">{gw.name}</h3>
-                    <p className="font-body text-xs text-[hsl(35,20%,90%)]/40 mt-0.5">{gw.description}</p>
+                    <h3 className="font-body text-sm font-medium text-foreground">{gw.name}</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-0.5">{gw.description}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -227,7 +227,7 @@ const AdminPaymentGateways = () => {
                       className={`font-body text-xs px-3 py-1 rounded transition-colors ${
                         isActive
                           ? "bg-accent text-accent-foreground"
-                          : "bg-[hsl(25,12%,14%)] text-[hsl(35,20%,90%)]/50 hover:text-[hsl(35,20%,90%)]"
+                          : "bg-secondary text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {isActive ? "Active" : "Set Active"}
@@ -241,26 +241,26 @@ const AdminPaymentGateways = () => {
               </div>
 
               {gwConfig.enabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-[hsl(25,12%,18%)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-border">
                   <div>
-                    <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                    <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">
                       {gw.keyLabel}
                     </Label>
                     <Input
                       value={getKeyValue(gw.id)}
                       onChange={(e) => updateKey(gw.id, e.target.value)}
                       placeholder={gw.keyPlaceholder}
-                      className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm font-mono"
+                      className="mt-1 bg-secondary border-border font-body text-sm font-mono"
                     />
                   </div>
                   <div>
-                    <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                    <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">
                       Mode
                     </Label>
                     <select
                       value={gwConfig.mode}
                       onChange={(e) => updateMode(gw.id, e.target.value)}
-                      className="mt-1 w-full bg-[hsl(25,15%,12%)] border border-[hsl(25,12%,20%)] rounded-md px-3 py-2 font-body text-sm text-[hsl(35,20%,90%)] outline-none"
+                      className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 font-body text-sm text-foreground outline-none"
                     >
                       {gw.modes.map((m) => (
                         <option key={m} value={m}>
@@ -276,9 +276,9 @@ const AdminPaymentGateways = () => {
         })}
       </div>
 
-      <div className="mt-6 p-4 rounded-lg bg-[hsl(25,15%,10%)] border border-[hsl(25,12%,20%)]">
-        <p className="font-body text-xs text-[hsl(35,20%,90%)]/40 leading-relaxed">
-          <strong className="text-[hsl(35,20%,90%)]/60">Note:</strong> Only public/publishable keys are stored here. 
+      <div className="mt-6 p-4 rounded-lg bg-card border border-border">
+        <p className="font-body text-xs text-muted-foreground leading-relaxed">
+          <strong className="text-foreground">Note:</strong> Only public/publishable keys are stored here. 
           Secret keys should be configured securely in the backend. Only one gateway can be active at a time — 
           this is the one used during checkout.
         </p>

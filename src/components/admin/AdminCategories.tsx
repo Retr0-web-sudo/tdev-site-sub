@@ -50,41 +50,41 @@ const AdminCategories = () => {
   return (
     <div>
       <h2 className="font-display text-2xl font-light mb-1">Categories</h2>
-      <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mb-8">Manage product categories</p>
+      <p className="font-body text-sm text-muted-foreground mb-8">Manage product categories</p>
 
       {/* Form */}
-      <div className="border border-[hsl(25,12%,20%)] rounded-lg p-5 bg-[hsl(25,15%,10%)] mb-6 max-w-2xl">
-        <h3 className="font-body text-sm font-medium mb-4">
+      <div className="border border-border rounded-lg p-5 bg-card mb-6 max-w-2xl">
+        <h3 className="font-body text-sm font-medium text-foreground mb-4">
           {editing ? "Edit Category" : "Add Category"}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">Name</Label>
+            <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">Name</Label>
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value, slug: editing ? form.slug : slugify(e.target.value) })}
-              className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+              className="mt-1 bg-secondary border-border font-body text-sm"
             />
           </div>
           <div>
-            <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">Slug</Label>
+            <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">Slug</Label>
             <div className="flex gap-2 mt-1">
               <Input
                 value={form.slug}
                 onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                className="bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm flex-1"
+                className="bg-secondary border-border font-body text-sm flex-1"
               />
-              <Button type="button" variant="outline" size="sm" onClick={() => setForm((prev) => ({ ...prev, slug: slugify(prev.name) }))} className="border-[hsl(25,12%,20%)] text-[hsl(35,20%,90%)]/60 font-body text-xs gap-1 shrink-0" title="Regenerate from name">
+              <Button type="button" variant="outline" size="sm" onClick={() => setForm((prev) => ({ ...prev, slug: slugify(prev.name) }))} className="border-border text-muted-foreground font-body text-xs gap-1 shrink-0" title="Regenerate from name">
                 <Wand2 size={12} /> Auto
               </Button>
             </div>
           </div>
           <div>
-            <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">Description</Label>
+            <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">Description</Label>
             <Input
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+              className="mt-1 bg-secondary border-border font-body text-sm"
             />
           </div>
         </div>
@@ -94,7 +94,7 @@ const AdminCategories = () => {
           </Button>
           {editing && (
             <Button variant="outline" onClick={() => { setEditing(null); setForm({ name: "", slug: "", description: "" }); }}
-              className="border-[hsl(25,12%,20%)] text-[hsl(35,20%,90%)]/60 font-body text-xs">
+              className="border-border text-muted-foreground font-body text-xs">
               Cancel
             </Button>
           )}
@@ -102,25 +102,25 @@ const AdminCategories = () => {
       </div>
 
       {/* List */}
-      <div className="border border-[hsl(25,12%,20%)] rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-[hsl(25,12%,20%)] bg-[hsl(25,15%,10%)]">
-              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Name</th>
-              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Slug</th>
-              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Description</th>
-              <th className="text-right px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Actions</th>
+            <tr className="border-b border-border bg-card">
+              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Name</th>
+              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Slug</th>
+              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Description</th>
+              <th className="text-right px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {categories.map((cat) => (
-              <tr key={cat.id} className="border-b border-[hsl(25,12%,18%)] last:border-0">
-                <td className="px-5 py-3 font-body text-sm">{cat.name}</td>
-                <td className="px-5 py-3 font-body text-xs text-[hsl(35,20%,90%)]/50">{cat.slug}</td>
-                <td className="px-5 py-3 font-body text-xs text-[hsl(35,20%,90%)]/50">{cat.description}</td>
+              <tr key={cat.id} className="border-b border-border last:border-0">
+                <td className="px-5 py-3 font-body text-sm text-foreground">{cat.name}</td>
+                <td className="px-5 py-3 font-body text-xs text-muted-foreground">{cat.slug}</td>
+                <td className="px-5 py-3 font-body text-xs text-muted-foreground">{cat.description}</td>
                 <td className="px-5 py-3 text-right">
-                  <button onClick={() => startEdit(cat)} className="text-[hsl(35,20%,90%)]/40 hover:text-accent mr-3"><Pencil size={14} /></button>
-                  <button onClick={() => remove(cat.id)} className="text-[hsl(35,20%,90%)]/40 hover:text-destructive"><Trash2 size={14} /></button>
+                  <button onClick={() => startEdit(cat)} className="text-muted-foreground hover:text-accent mr-3 transition-colors"><Pencil size={14} /></button>
+                  <button onClick={() => remove(cat.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={14} /></button>
                 </td>
               </tr>
             ))}

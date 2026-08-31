@@ -106,7 +106,7 @@ const AdminMessages = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search messages..."
-            className="w-full pl-9 pr-3 py-2 bg-[hsl(25,15%,12%)] border border-[hsl(25,12%,20%)] rounded-md font-body text-sm text-foreground outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-secondary border border-border rounded-md font-body text-sm text-foreground outline-none"
           />
         </div>
         {(["all", "unread", "read", "replied"] as const).map((f) => (
@@ -114,7 +114,7 @@ const AdminMessages = () => {
             key={f}
             onClick={() => setFilter(f)}
             className={`font-body text-xs px-3 py-1.5 rounded transition-colors capitalize ${
-              filter === f ? "bg-accent text-accent-foreground" : "bg-[hsl(25,12%,14%)] text-muted-foreground hover:text-foreground"
+              filter === f ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
             {f}
@@ -136,7 +136,7 @@ const AdminMessages = () => {
                 className={`border rounded-lg transition-colors ${
                   msg.status === "unread"
                     ? "border-accent/30 bg-accent/5"
-                    : "border-[hsl(25,12%,20%)] bg-[hsl(25,15%,10%)]"
+                    : "border-border bg-card"
                 }`}
               >
                 <button
@@ -150,10 +150,10 @@ const AdminMessages = () => {
                   {statusIcon(msg.status)}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-body text-sm font-medium truncate">{msg.name}</span>
+                      <span className="font-body text-sm font-medium text-foreground truncate">{msg.name}</span>
                       <span className="font-body text-xs text-muted-foreground truncate">{msg.email}</span>
                     </div>
-                    <p className="font-body text-sm mt-0.5 truncate">{msg.subject}</p>
+                    <p className="font-body text-sm text-foreground mt-0.5 truncate">{msg.subject}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Clock size={12} className="text-muted-foreground" />
@@ -164,9 +164,9 @@ const AdminMessages = () => {
                 </button>
 
                 {isExpanded && (
-                  <div className="px-4 pb-4 border-t border-[hsl(25,12%,18%)] pt-4 space-y-4">
-                    <div className="bg-[hsl(25,15%,8%)] rounded p-3">
-                      <p className="font-body text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                  <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
+                    <div className="bg-background rounded p-3">
+                      <p className="font-body text-sm text-foreground whitespace-pre-wrap leading-relaxed">{msg.message}</p>
                     </div>
 
                     {msg.admin_reply && msg.replied_at && (
@@ -174,7 +174,7 @@ const AdminMessages = () => {
                         <p className="font-body text-xs text-accent mb-1">
                           Replied {new Date(msg.replied_at).toLocaleString()}
                         </p>
-                        <p className="font-body text-sm whitespace-pre-wrap">{msg.admin_reply}</p>
+                        <p className="font-body text-sm text-foreground whitespace-pre-wrap">{msg.admin_reply}</p>
                       </div>
                     )}
 
@@ -184,7 +184,7 @@ const AdminMessages = () => {
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Write a reply..."
                         rows={3}
-                        className="bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm resize-none"
+                        className="bg-secondary border-border font-body text-sm resize-none"
                       />
                       <div className="flex items-center gap-2 mt-2">
                         <Button

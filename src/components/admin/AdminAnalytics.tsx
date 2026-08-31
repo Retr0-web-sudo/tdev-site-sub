@@ -57,16 +57,16 @@ const AdminAnalytics = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-2xl font-light">Performance Analytics</h2>
-          <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mt-1">
+          <p className="font-body text-sm text-muted-foreground mt-1">
             Track your website's performance and visitor engagement
           </p>
         </div>
-        <div className="flex items-center gap-2 border border-[hsl(25,12%,20%)] rounded-md px-3 py-2">
-          <Calendar size={14} className="text-[hsl(35,20%,90%)]/40" />
+        <div className="flex items-center gap-2 border border-border rounded-md px-3 py-2 bg-card">
+          <Calendar size={14} className="text-muted-foreground" />
           <select
             value={range}
             onChange={(e) => setRange(e.target.value as DateRange)}
-            className="bg-transparent font-body text-xs text-[hsl(35,20%,90%)]/80 outline-none cursor-pointer"
+            className="bg-transparent font-body text-xs text-foreground outline-none cursor-pointer"
           >
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
@@ -82,25 +82,25 @@ const AdminAnalytics = () => {
           return (
             <div
               key={stat.label}
-              className="border border-[hsl(25,12%,20%)] rounded-lg p-5 bg-[hsl(25,15%,10%)]"
+              className="border border-border rounded-lg p-5 bg-card"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Icon size={16} className="text-accent" />
-                  <span className="font-body text-sm text-[hsl(35,20%,90%)]/70">{stat.label}</span>
+                  <span className="font-body text-sm text-muted-foreground">{stat.label}</span>
                 </div>
               </div>
-              <p className="font-display text-3xl font-light">{stat.value}</p>
+              <p className="font-display text-3xl font-light text-foreground">{stat.value}</p>
             </div>
           );
         })}
       </div>
 
       {/* Chart */}
-      <div className="border border-[hsl(25,12%,20%)] rounded-lg p-6 bg-[hsl(25,15%,10%)]">
+      <div className="border border-border rounded-lg p-6 bg-card">
         <div className="flex items-center gap-2 mb-6">
           <BarChart3 size={16} className="text-accent" />
-          <h3 className="font-body text-sm font-medium">Daily Traffic</h3>
+          <h3 className="font-body text-sm font-medium text-foreground">Daily Traffic</h3>
         </div>
         <div className="h-64">
           {dailyData.length > 0 ? (
@@ -108,22 +108,22 @@ const AdminAnalytics = () => {
               <BarChart data={dailyData}>
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 11, fill: "hsl(35,20%,90%,0.4)" }}
+                  tick={{ fontSize: 11, fill: "hsl(30,10%,62%)" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "hsl(35,20%,90%,0.4)" }}
+                  tick={{ fontSize: 11, fill: "hsl(30,10%,62%)" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(25,15%,12%)",
-                    border: "1px solid hsl(25,12%,20%)",
+                    backgroundColor: "hsl(25,12%,13%)",
+                    border: "1px solid hsl(25,10%,22%)",
                     borderRadius: "6px",
                     fontSize: "12px",
-                    color: "hsl(35,20%,90%)",
+                    color: "hsl(35,15%,93%)",
                   }}
                 />
                 <Bar dataKey="views" fill="hsl(28,40%,50%)" radius={[4, 4, 0, 0]} />
@@ -131,7 +131,7 @@ const AdminAnalytics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center">
-              <p className="font-body text-sm text-[hsl(35,20%,90%)]/30">No data yet. Views will appear as visitors browse your site.</p>
+              <p className="font-body text-sm text-muted-foreground">No data yet. Views will appear as visitors browse your site.</p>
             </div>
           )}
         </div>

@@ -92,7 +92,7 @@ router.post('/subscriptions', authenticate, async (req: AuthRequest, res: Respon
     const parsed = createSubscriptionSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
 
-    const userId = req.user!.userId;
+    const userId = req.userId!;
     const { planId, shippingAddress } = parsed.data;
 
     // Check plan exists
@@ -141,7 +141,7 @@ router.get('/subscriptions/mine', authenticate, async (req: AuthRequest, res: Re
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
        WHERE s.user_id = $1
        ORDER BY s.created_at DESC LIMIT 1`,
-      [req.user!.userId]
+      [req.userId!]
     );
     res.json({ success: true, data: fixMany(rows) });
   } catch (err: any) {
@@ -156,12 +156,12 @@ router.patch('/subscriptions/:id', authenticate, async (req: AuthRequest, res: R
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
 
     const { id } = req.params;
-    const userId = req.user!.userId;
+    const userId = req.userId!;
 
     // Verify ownership or admin
     const existing = await sql('SELECT * FROM public.subscriptions WHERE id = $1', [id]);
     if (!existing[0]) return res.status(404).json({ success: false, error: 'Subscription not found' });
-    if (existing[0].user_id !== userId && req.user!.role !== 'admin') {
+    if (existing[0].user_id !== userId && req.userRole !== 'admin') {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
@@ -201,11 +201,11 @@ router.patch('/subscriptions/:id', authenticate, async (req: AuthRequest, res: R
 router.post('/subscriptions/:id/cancel', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = req.user!.userId;
+    const userId = req.userId!;
 
     const existing = await sql('SELECT * FROM public.subscriptions WHERE id = $1', [id]);
     if (!existing[0]) return res.status(404).json({ success: false, error: 'Subscription not found' });
-    if (existing[0].user_id !== userId && req.user!.role !== 'admin') {
+    if (existing[0].user_id !== userId && req.userRole !== 'admin') {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
@@ -230,7 +230,7 @@ router.post('/style-quiz', authenticate, async (req: AuthRequest, res: Response)
     const parsed = styleQuizSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
 
-    const userId = req.user!.userId;
+    const userId = req.userId!;
     const data = parsed.data;
 
     // Upsert
@@ -261,7 +261,7 @@ router.post('/style-quiz', authenticate, async (req: AuthRequest, res: Response)
 
 router.get('/style-quiz/mine', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const rows = await sql('SELECT * FROM public.style_quizzes WHERE user_id = $1', [req.user!.userId]);
+    const rows = await sql('SELECT * FROM public.style_quizzes WHERE user_id = $1', [req.userId!]);
     res.json({ success: true, data: fixMany(rows) });
   } catch (err: any) {
     logger.error('Failed to fetch quiz', { error: err.message });
@@ -282,7 +282,7 @@ router.get('/subscription-orders/mine', authenticate, async (req: AuthRequest, r
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
        WHERE so.user_id = $1
        ORDER BY so.created_at DESC`,
-      [req.user!.userId]
+      [req.userId!]
     );
     res.json({ success: true, data: fixMany(rows) });
   } catch (err: any) {
@@ -295,13 +295,52 @@ router.get('/subscription-orders/:id', authenticate, async (req: AuthRequest, re
   try {
     const rows = await sql('SELECT * FROM public.subscription_orders WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ success: false, error: 'Order not found' });
-    if (rows[0].user_id !== req.user!.userId && req.user!.role !== 'admin') {
+    if (rows[0].user_id !== req.userId! && req.userRole !== 'admin') {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
     res.json({ success: true, data: fixNumeric(rows[0]) });
   } catch (err: any) {
     logger.error('Failed to fetch order', { error: err.message });
     res.status(500).json({ success: false, error: 'Failed to fetch order' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  AUTHENTICATED: List endpoints (compat layer)
+// ══════════════════════════════════════════════
+
+router.get('/subscriptions', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const rows = await sql(
+      `SELECT s.*, sp.name as plan_name, sp.price as plan_price, sp.features as plan_features
+       FROM public.subscriptions s
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE s.user_id = $1
+       ORDER BY s.created_at DESC`,
+      [req.userId!]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err: any) {
+    logger.error('Failed to fetch subscriptions', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch subscriptions' });
+  }
+});
+
+router.get('/subscription-orders', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const rows = await sql(
+      `SELECT so.*, sp.name as plan_name
+       FROM public.subscription_orders so
+       JOIN public.subscriptions s ON so.subscription_id = s.id
+       JOIN public.subscription_plans sp ON s.plan_id = sp.id
+       WHERE so.user_id = $1
+       ORDER BY so.created_at DESC`,
+      [req.userId!]
+    );
+    res.json({ success: true, data: fixMany(rows) });
+  } catch (err: any) {
+    logger.error('Failed to fetch subscription orders', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch subscription orders' });
   }
 });
 

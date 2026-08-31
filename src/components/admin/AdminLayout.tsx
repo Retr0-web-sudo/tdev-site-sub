@@ -67,20 +67,20 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(25,15%,8%)] text-[hsl(35,20%,90%)]">
-      <nav className="border-b border-[hsl(25,12%,18%)] bg-[hsl(25,15%,6%)]">
+    <div className="min-h-screen bg-background text-foreground">
+      <nav className="border-b border-border bg-[hsl(25,15%,5%)]">
         <div className="px-6 md:px-10 flex items-center justify-between h-14">
           <div className="flex items-center gap-4">
             <a href="/" className="font-display text-xl font-light tracking-[0.15em]">TDEV</a>
-            <span className="text-[hsl(35,20%,90%)]/40">|</span>
+            <span className="text-border">|</span>
             <span className="font-body text-sm tracking-wider">Admin Panel</span>
           </div>
           <div className="flex items-center gap-6">
-            <a href="/" target="_blank" className="hidden md:flex items-center gap-1.5 font-body text-xs tracking-wider text-[hsl(35,20%,90%)]/60 hover:text-[hsl(35,20%,90%)] transition-colors">
+            <a href="/" target="_blank" className="hidden md:flex items-center gap-1.5 font-body text-xs tracking-wider text-muted-foreground hover:text-foreground transition-colors">
               View Site <ExternalLink size={12} />
             </a>
-            <span className="hidden md:block font-body text-xs text-[hsl(35,20%,90%)]/50">{user?.email}</span>
-            <button onClick={signOut} className="flex items-center gap-1.5 font-body text-xs tracking-wider text-[hsl(35,20%,90%)]/60 hover:text-[hsl(35,20%,90%)] transition-colors">
+            <span className="hidden md:block font-body text-xs text-muted-foreground">{user?.email}</span>
+            <button onClick={signOut} className="flex items-center gap-1.5 font-body text-xs tracking-wider text-muted-foreground hover:text-foreground transition-colors">
               <LogOut size={14} /> Sign Out
             </button>
           </div>
@@ -90,10 +90,10 @@ const AdminLayout = () => {
       <div className="px-6 md:px-10 py-8 max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="font-display text-3xl md:text-4xl font-light">Welcome back</h1>
-          <p className="font-body text-sm text-[hsl(35,20%,90%)]/50 mt-1">Manage your website content without any coding required.</p>
+          <p className="font-body text-sm text-muted-foreground mt-1">Manage your website content without any coding required.</p>
         </div>
 
-        <div className="border-b border-[hsl(25,12%,18%)] mb-8 overflow-x-auto">
+        <div className="border-b border-border mb-8 overflow-x-auto">
           <div className="flex gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -105,7 +105,7 @@ const AdminLayout = () => {
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-t-md font-body text-xs tracking-wider whitespace-nowrap transition-colors ${
                     isActive
                       ? "bg-accent text-accent-foreground"
-                      : "text-[hsl(35,20%,90%)]/50 hover:text-[hsl(35,20%,90%)]/80 hover:bg-[hsl(25,12%,14%)]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
                   <Icon size={14} />

@@ -24,12 +24,12 @@ interface DesignRequest {
 
 const STATUS_OPTIONS = ["pending", "quoted", "approved", "in_production", "completed", "cancelled"];
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-500/20 text-yellow-400",
-  quoted: "bg-blue-500/20 text-blue-400",
-  approved: "bg-green-500/20 text-green-400",
-  in_production: "bg-purple-500/20 text-purple-400",
-  completed: "bg-emerald-500/20 text-emerald-400",
-  cancelled: "bg-red-500/20 text-red-400",
+  pending: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
+  quoted: "bg-blue-500/15 text-blue-400 border border-blue-500/20",
+  approved: "bg-green-500/15 text-green-400 border border-green-500/20",
+  in_production: "bg-purple-500/15 text-purple-400 border border-purple-500/20",
+  completed: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20",
+  cancelled: "bg-red-500/15 text-red-400 border border-red-500/20",
 };
 
 const AdminDesignRequests = () => {
@@ -107,7 +107,7 @@ const AdminDesignRequests = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search requests..."
-            className="w-full pl-9 pr-3 py-2 bg-[hsl(25,15%,12%)] border border-[hsl(25,12%,20%)] rounded-md font-body text-sm text-foreground outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-secondary border border-border rounded-md font-body text-sm text-foreground outline-none"
           />
         </div>
         {["all", ...STATUS_OPTIONS].map((f) => (
@@ -115,7 +115,7 @@ const AdminDesignRequests = () => {
             key={f}
             onClick={() => setFilter(f)}
             className={`font-body text-xs px-3 py-1.5 rounded transition-colors capitalize ${
-              filter === f ? "bg-accent text-accent-foreground" : "bg-[hsl(25,12%,14%)] text-muted-foreground hover:text-foreground"
+              filter === f ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
             {f.replace("_", " ")}
@@ -134,7 +134,7 @@ const AdminDesignRequests = () => {
             return (
               <div
                 key={req.id}
-                className="border border-[hsl(25,12%,20%)] bg-[hsl(25,15%,10%)] rounded-lg"
+                className="border border-border bg-card rounded-lg"
               >
                 <button
                   onClick={() => {
@@ -150,7 +150,7 @@ const AdminDesignRequests = () => {
                   <Shirt size={16} className="text-accent mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-body text-sm font-medium">{req.name}</span>
+                      <span className="font-body text-sm font-medium text-foreground">{req.name}</span>
                       <span className="font-body text-xs text-muted-foreground">{req.email}</span>
                       <span className={`font-body text-xs px-2 py-0.5 rounded capitalize ${STATUS_COLORS[req.status] || ""}`}>
                         {req.status.replace("_", " ")}
@@ -170,7 +170,7 @@ const AdminDesignRequests = () => {
                 </button>
 
                 {isExpanded && (
-                  <div className="px-4 pb-4 border-t border-[hsl(25,12%,18%)] pt-4 space-y-4">
+                  <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Design preview */}
                       <div>
@@ -183,7 +183,7 @@ const AdminDesignRequests = () => {
                                   <path
                                     d="M80 0 L0 80 L60 120 L60 500 L340 500 L340 120 L400 80 L320 0 L260 40 Q200 70 140 40 Z"
                                     fill={req.shirt_color}
-                                    stroke="hsl(25, 12%, 30%)"
+                                    stroke="hsl(25, 10%, 30%)"
                                     strokeWidth="2"
                                   />
                                 </svg>
@@ -210,27 +210,27 @@ const AdminDesignRequests = () => {
                             <p className="font-body text-xs text-muted-foreground">Shirt Color</p>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="w-5 h-5 rounded-full border border-border" style={{ backgroundColor: req.shirt_color }} />
-                              <span className="font-body text-sm">{req.shirt_color}</span>
+                              <span className="font-body text-sm text-foreground">{req.shirt_color}</span>
                             </div>
                           </div>
                           <div>
                             <p className="font-body text-xs text-muted-foreground">Size</p>
-                            <p className="font-body text-sm mt-1">{req.shirt_size}</p>
+                            <p className="font-body text-sm text-foreground mt-1">{req.shirt_size}</p>
                           </div>
                           <div>
                             <p className="font-body text-xs text-muted-foreground">Quantity</p>
-                            <p className="font-body text-sm mt-1">{req.quantity}</p>
+                            <p className="font-body text-sm text-foreground mt-1">{req.quantity}</p>
                           </div>
                           <div>
                             <p className="font-body text-xs text-muted-foreground">Phone</p>
-                            <p className="font-body text-sm mt-1">{req.phone || "—"}</p>
+                            <p className="font-body text-sm text-foreground mt-1">{req.phone || "—"}</p>
                           </div>
                         </div>
 
                         {req.notes && (
                           <div>
                             <p className="font-body text-xs text-muted-foreground">Customer Notes</p>
-                            <p className="font-body text-sm mt-1 bg-[hsl(25,15%,8%)] rounded p-2 whitespace-pre-wrap">
+                            <p className="font-body text-sm text-foreground mt-1 bg-background rounded p-2 whitespace-pre-wrap">
                               {req.notes}
                             </p>
                           </div>
@@ -239,14 +239,14 @@ const AdminDesignRequests = () => {
                     </div>
 
                     {/* Admin controls */}
-                    <div className="border-t border-[hsl(25,12%,18%)] pt-4 space-y-3">
+                    <div className="border-t border-border pt-4 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <p className="font-body text-xs text-muted-foreground mb-1">Status</p>
                           <select
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value)}
-                            className="w-full px-3 py-2 bg-[hsl(25,15%,12%)] border border-[hsl(25,12%,20%)] rounded font-body text-sm text-foreground capitalize"
+                            className="w-full px-3 py-2 bg-secondary border border-border rounded font-body text-sm text-foreground capitalize"
                           >
                             {STATUS_OPTIONS.map((s) => (
                               <option key={s} value={s}>{s.replace("_", " ")}</option>
@@ -261,7 +261,7 @@ const AdminDesignRequests = () => {
                               type="number" min={0} step={0.01}
                               value={editPrice}
                               onChange={(e) => setEditPrice(e.target.value)}
-                              className="pl-8 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+                              className="pl-8 bg-secondary border-border font-body text-sm"
                               placeholder="0.00"
                             />
                           </div>
@@ -274,7 +274,7 @@ const AdminDesignRequests = () => {
                           onChange={(e) => setEditNotes(e.target.value)}
                           placeholder="Internal notes..."
                           rows={2}
-                          className="bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm resize-none"
+                          className="bg-secondary border-border font-body text-sm resize-none"
                         />
                       </div>
                       <div className="flex items-center gap-2">

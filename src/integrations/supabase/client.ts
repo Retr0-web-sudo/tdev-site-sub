@@ -36,6 +36,10 @@ function route(table) {
     page_views: '/page-views', discount_codes: '/discount-codes', site_settings: '/settings',
     messages: '/messages', products: '/products', categories: '/categories',
     orders: '/orders', announcements: '/announcements',
+    subscription_plans: '/subscription-plans',
+    subscriptions: '/subscriptions',
+    subscription_orders: '/subscription-orders',
+    style_quizzes: '/style-quiz',
   };
   return map[table] || '/' + table;
 }

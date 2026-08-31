@@ -26,9 +26,9 @@ const DEFAULT_CONTACT: Contact = {
 };
 
 const inputCls =
-  "mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm";
+  "mt-1 bg-secondary border-border font-body text-sm";
 const labelCls =
-  "font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60";
+  "font-body text-xs tracking-wider uppercase text-muted-foreground";
 
 const AdminSiteContent = () => {
   const [hero, setHero] = useState<Hero>({ title: "TDEV", subtitle: "Global Collection", cta: "Explore" });
@@ -88,7 +88,7 @@ const AdminSiteContent = () => {
     <div className="max-w-2xl space-y-14">
       <div>
         <h2 className="font-display text-2xl font-light mb-1">Site Content</h2>
-        <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mb-8">
+        <p className="font-body text-sm text-muted-foreground mb-8">
           Edit the hero section and main content
         </p>
 
@@ -118,7 +118,7 @@ const AdminSiteContent = () => {
 
       <div>
         <h2 className="font-display text-2xl font-light mb-1">Contact & Social</h2>
-        <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mb-8">
+        <p className="font-body text-sm text-muted-foreground mb-8">
           Update the contact details and social links shown in the footer. Leave a social field empty to hide its icon.
         </p>
 
@@ -144,7 +144,7 @@ const AdminSiteContent = () => {
           </div>
 
           <div className="pt-2">
-            <p className="font-body text-xs tracking-[0.2em] uppercase text-[hsl(35,20%,90%)]/50 mb-4">
+            <p className="font-body text-xs tracking-[0.2em] uppercase text-muted-foreground mb-4">
               Social Media Links
             </p>
             <div className="grid sm:grid-cols-2 gap-4">

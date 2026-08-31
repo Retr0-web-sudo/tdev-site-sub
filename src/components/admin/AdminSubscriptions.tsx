@@ -39,9 +39,9 @@ interface Stats {
 }
 
 const statusColors: Record<string, string> = {
-  active: "bg-green-500/20 text-green-400",
-  paused: "bg-yellow-500/20 text-yellow-400",
-  cancelled: "bg-red-500/20 text-red-400",
+  active: "bg-green-500/15 text-green-400 border border-green-500/20",
+  paused: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
+  cancelled: "bg-red-500/15 text-red-400 border border-red-500/20",
 };
 
 const AdminSubscriptions = () => {
@@ -53,7 +53,7 @@ const AdminSubscriptions = () => {
   const [activeView, setActiveView] = useState<"overview" | "subscriptions" | "plans">("overview");
 
   const authHeaders = () => {
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("tdev_token");
     return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
   };
 
@@ -118,7 +118,7 @@ const AdminSubscriptions = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RefreshCw className="animate-spin text-[hsl(35,20%,90%)]/40" size={20} />
+        <RefreshCw className="animate-spin text-muted-foreground" size={20} />
       </div>
     );
   }
@@ -128,15 +128,15 @@ const AdminSubscriptions = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-2xl font-light">Subscriptions</h2>
-          <p className="font-body text-sm text-[hsl(35,20%,90%)]/50 mt-1">Manage subscription plans, subscribers, and billing.</p>
+          <p className="font-body text-sm text-muted-foreground mt-1">Manage subscription plans, subscribers, and billing.</p>
         </div>
-        <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-[hsl(25,12%,14%)] hover:bg-[hsl(25,12%,18%)] rounded-md font-body text-xs tracking-wider transition-colors">
+        <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/80 border border-border rounded-md font-body text-xs tracking-wider text-foreground transition-colors">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 mb-6 border-b border-[hsl(25,12%,18%)]">
+      <div className="flex gap-1 mb-6 border-b border-border">
         {(["overview", "subscriptions", "plans"] as const).map((v) => (
           <button
             key={v}
@@ -144,7 +144,7 @@ const AdminSubscriptions = () => {
             className={`px-4 py-2 rounded-t-md font-body text-xs tracking-wider capitalize transition-colors ${
               activeView === v
                 ? "bg-accent text-accent-foreground"
-                : "text-[hsl(35,20%,90%)]/50 hover:text-[hsl(35,20%,90%)]/80 hover:bg-[hsl(25,12%,14%)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
           >
             {v}
@@ -155,27 +155,27 @@ const AdminSubscriptions = () => {
       {/* Overview */}
       {activeView === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-[hsl(25,12%,12%)] border border-[hsl(25,12%,18%)] rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2"><Users size={16} className="text-[hsl(35,20%,90%)]/40" /><span className="font-body text-xs text-[hsl(35,20%,90%)]/50 tracking-wider">Total Subscribers</span></div>
-            <p className="font-display text-3xl font-light">{stats?.totalSubscriptions || 0}</p>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-2"><Users size={16} className="text-muted-foreground" /><span className="font-body text-xs text-muted-foreground tracking-wider">Total Subscribers</span></div>
+            <p className="font-display text-3xl font-light text-foreground">{stats?.totalSubscriptions || 0}</p>
           </div>
-          <div className="bg-[hsl(25,12%,12%)] border border-[hsl(25,12%,18%)] rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2"><TrendingUp size={16} className="text-green-400/60" /><span className="font-body text-xs text-[hsl(35,20%,90%)]/50 tracking-wider">Active</span></div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-2"><TrendingUp size={16} className="text-green-400" /><span className="font-body text-xs text-muted-foreground tracking-wider">Active</span></div>
             <p className="font-display text-3xl font-light text-green-400">{stats?.activeSubscriptions || 0}</p>
           </div>
-          <div className="bg-[hsl(25,12%,12%)] border border-[hsl(25,12%,18%)] rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2"><DollarSign size={16} className="text-accent" /><span className="font-body text-xs text-[hsl(35,20%,90%)]/50 tracking-wider">Total Revenue</span></div>
-            <p className="font-display text-3xl font-light">{formatCedi(stats?.totalRevenue || 0)}</p>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-2"><DollarSign size={16} className="text-accent" /><span className="font-body text-xs text-muted-foreground tracking-wider">Total Revenue</span></div>
+            <p className="font-display text-3xl font-light text-foreground">{formatCedi(stats?.totalRevenue || 0)}</p>
           </div>
 
           {/* Plan breakdown */}
-          <div className="md:col-span-3 bg-[hsl(25,12%,12%)] border border-[hsl(25,12%,18%)] rounded-lg p-5">
-            <h3 className="font-body text-sm tracking-wider text-[hsl(35,20%,90%)]/60 mb-4">Plan Breakdown</h3>
+          <div className="md:col-span-3 bg-card border border-border rounded-lg p-5">
+            <h3 className="font-body text-sm tracking-wider text-muted-foreground mb-4">Plan Breakdown</h3>
             <div className="grid grid-cols-3 gap-4">
               {stats?.planBreakdown?.map((p) => (
                 <div key={p.name} className="text-center">
-                  <p className="font-display text-2xl font-light">{p.count}</p>
-                  <p className="font-body text-xs text-[hsl(35,20%,90%)]/50">{p.name}</p>
+                  <p className="font-display text-2xl font-light text-foreground">{p.count}</p>
+                  <p className="font-body text-xs text-muted-foreground">{p.name}</p>
                 </div>
               ))}
             </div>
@@ -188,26 +188,26 @@ const AdminSubscriptions = () => {
         <div>
           {subs.length === 0 ? (
             <div className="text-center py-16">
-              <Users size={40} className="mx-auto mb-4 text-[hsl(35,20%,90%)]/20" />
-              <p className="font-body text-sm text-[hsl(35,20%,90%)]/40">No subscriptions yet.</p>
+              <Users size={40} className="mx-auto mb-4 text-muted-foreground/40" />
+              <p className="font-body text-sm text-muted-foreground">No subscriptions yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {subs.map((sub) => (
-                <div key={sub.id} className="bg-[hsl(25,12%,12%)] border border-[hsl(25,12%,18%)] rounded-lg p-4 flex items-center justify-between hover:border-[hsl(25,12%,22%)] transition-colors">
+                <div key={sub.id} className="bg-card border border-border rounded-lg p-4 flex items-center justify-between hover:border-accent/30 transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="font-body text-sm">{sub.display_name || sub.email || sub.user_id.slice(0, 8)}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-body tracking-wider uppercase ${statusColors[sub.status] || "bg-[hsl(25,12%,18%)] text-[hsl(35,20%,90%)]/60"}`}>
+                      <span className="font-body text-sm text-foreground">{sub.display_name || sub.email || sub.user_id.slice(0, 8)}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-body tracking-wider uppercase ${statusColors[sub.status] || "bg-secondary text-muted-foreground border border-border"}`}>
                         {sub.status}
                       </span>
                     </div>
-                    <p className="font-body text-xs text-[hsl(35,20%,90%)]/40 mt-1">
+                    <p className="font-body text-xs text-muted-foreground mt-1">
                       {sub.plan_name} ({formatCedi(sub.plan_price)}) · Started {formatDate(sub.created_at)} · Renews {formatDate(sub.next_billing_date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setSelectedSub(sub)} className="p-2 hover:bg-[hsl(25,12%,18%)] rounded-md transition-colors" title="View">
+                    <button onClick={() => setSelectedSub(sub)} className="p-2 hover:bg-secondary rounded-md transition-colors text-muted-foreground hover:text-foreground" title="View">
                       <Eye size={14} />
                     </button>
                     {sub.status === "active" && (
@@ -237,17 +237,17 @@ const AdminSubscriptions = () => {
       {activeView === "plans" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map((plan) => (
-            <div key={plan.id} className={`bg-[hsl(25,12%,12%)] border rounded-lg p-5 ${plan.is_active ? "border-[hsl(25,12%,18%)]" : "border-[hsl(25,12%,14%)] opacity-50"}`}>
+            <div key={plan.id} className={`bg-card border rounded-lg p-5 ${plan.is_active ? "border-border" : "border-border/50 opacity-60"}`}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display text-xl font-light">{plan.name}</h3>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-body tracking-wider ${plan.is_active ? "bg-green-500/20 text-green-400" : "bg-[hsl(25,12%,18%)] text-[hsl(35,20%,90%)]/40"}`}>
+                <h3 className="font-display text-xl font-light text-foreground">{plan.name}</h3>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-body tracking-wider ${plan.is_active ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-secondary text-muted-foreground border border-border"}`}>
                   {plan.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
-              <p className="font-display text-3xl font-light mb-3">{formatCedi(plan.price)}<span className="text-sm text-[hsl(35,20%,90%)]/40">/mo</span></p>
+              <p className="font-display text-3xl font-light text-foreground mb-3">{formatCedi(plan.price)}<span className="text-sm text-muted-foreground">/mo</span></p>
               <ul className="space-y-1 mb-4">
                 {plan.features?.map((f: string, i: number) => (
-                  <li key={i} className="font-body text-xs text-[hsl(35,20%,90%)]/60 flex items-start gap-2">
+                  <li key={i} className="font-body text-xs text-muted-foreground flex items-start gap-2">
                     <span className="text-accent mt-0.5">·</span> {f}
                   </li>
                 ))}
@@ -256,8 +256,8 @@ const AdminSubscriptions = () => {
                 onClick={() => togglePlanActive(plan)}
                 className={`w-full py-2 rounded-md font-body text-xs tracking-wider transition-colors ${
                   plan.is_active
-                    ? "bg-[hsl(25,12%,18%)] hover:bg-[hsl(25,12%,22%)] text-[hsl(35,20%,90%)]/70"
-                    : "bg-accent hover:bg-accent/80 text-accent-foreground"
+                    ? "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
+                    : "bg-accent hover:bg-accent/90 text-accent-foreground"
                 }`}
               >
                 {plan.is_active ? "Deactivate" : "Activate"}
@@ -270,45 +270,45 @@ const AdminSubscriptions = () => {
       {/* Detail modal */}
       {selectedSub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setSelectedSub(null)}>
-          <div className="bg-[hsl(25,15%,10%)] border border-[hsl(25,12%,18%)] rounded-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-popover border border-border rounded-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-light">Subscription Details</h3>
-              <button onClick={() => setSelectedSub(null)} className="p-1 hover:bg-[hsl(25,12%,18%)] rounded-md"><X size={16} /></button>
+              <h3 className="font-display text-xl font-light text-foreground">Subscription Details</h3>
+              <button onClick={() => setSelectedSub(null)} className="p-1 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-colors"><X size={16} /></button>
             </div>
             <div className="space-y-3 font-body text-sm">
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Subscriber</span><span>{selectedSub.display_name || selectedSub.email || selectedSub.user_id}</span></div>
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Plan</span><span>{selectedSub.plan_name} ({formatCedi(selectedSub.plan_price)}/mo)</span></div>
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Status</span><span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${statusColors[selectedSub.status]}`}>{selectedSub.status}</span></div>
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Started</span><span>{formatDate(selectedSub.created_at)}</span></div>
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Period End</span><span>{formatDate(selectedSub.current_period_end)}</span></div>
-              <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Next Billing</span><span>{formatDate(selectedSub.next_billing_date)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subscriber</span><span className="text-foreground">{selectedSub.display_name || selectedSub.email || selectedSub.user_id}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Plan</span><span className="text-foreground">{selectedSub.plan_name} ({formatCedi(selectedSub.plan_price)}/mo)</span></div>
+              <div className="flex justify-between items-center"><span className="text-muted-foreground">Status</span><span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${statusColors[selectedSub.status]}`}>{selectedSub.status}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Started</span><span className="text-foreground">{formatDate(selectedSub.created_at)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Period End</span><span className="text-foreground">{formatDate(selectedSub.current_period_end)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Next Billing</span><span className="text-foreground">{formatDate(selectedSub.next_billing_date)}</span></div>
               {selectedSub.cancelled_at && (
-                <div className="flex justify-between"><span className="text-[hsl(35,20%,90%)]/50">Cancelled</span><span className="text-red-400">{formatDate(selectedSub.cancelled_at)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><span className="text-red-400">{formatDate(selectedSub.cancelled_at)}</span></div>
               )}
 
               {selectedSub.shipping_address && Object.keys(selectedSub.shipping_address).length > 0 && (
-                <div className="pt-3 border-t border-[hsl(25,12%,18%)]">
-                  <p className="text-[hsl(35,20%,90%)]/50 mb-2">Shipping Address</p>
-                  <pre className="text-xs text-[hsl(35,20%,90%)]/70 whitespace-pre-wrap">{JSON.stringify(selectedSub.shipping_address, null, 2)}</pre>
+                <div className="pt-3 border-t border-border">
+                  <p className="text-muted-foreground mb-2">Shipping Address</p>
+                  <pre className="text-xs text-foreground/80 whitespace-pre-wrap">{JSON.stringify(selectedSub.shipping_address, null, 2)}</pre>
                 </div>
               )}
 
               {selectedSub.style_preferences && Object.keys(selectedSub.style_preferences).length > 0 && (
-                <div className="pt-3 border-t border-[hsl(25,12%,18%)]">
-                  <p className="text-[hsl(35,20%,90%)]/50 mb-2">Style Preferences</p>
-                  <pre className="text-xs text-[hsl(35,20%,90%)]/70 whitespace-pre-wrap">{JSON.stringify(selectedSub.style_preferences, null, 2)}</pre>
+                <div className="pt-3 border-t border-border">
+                  <p className="text-muted-foreground mb-2">Style Preferences</p>
+                  <pre className="text-xs text-foreground/80 whitespace-pre-wrap">{JSON.stringify(selectedSub.style_preferences, null, 2)}</pre>
                 </div>
               )}
 
               <div className="flex gap-2 pt-4">
                 {selectedSub.status === "active" && (
-                  <button onClick={() => updateSubStatus(selectedSub.id, "paused")} className="flex-1 py-2 bg-yellow-500/10 text-yellow-400 rounded-md font-body text-xs tracking-wider hover:bg-yellow-500/20 transition-colors">Pause</button>
+                  <button onClick={() => updateSubStatus(selectedSub.id, "paused")} className="flex-1 py-2 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-md font-body text-xs tracking-wider hover:bg-yellow-500/20 transition-colors">Pause</button>
                 )}
                 {selectedSub.status === "paused" && (
-                  <button onClick={() => updateSubStatus(selectedSub.id, "active")} className="flex-1 py-2 bg-green-500/10 text-green-400 rounded-md font-body text-xs tracking-wider hover:bg-green-500/20 transition-colors">Resume</button>
+                  <button onClick={() => updateSubStatus(selectedSub.id, "active")} className="flex-1 py-2 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md font-body text-xs tracking-wider hover:bg-green-500/20 transition-colors">Resume</button>
                 )}
                 {selectedSub.status !== "cancelled" && (
-                  <button onClick={() => updateSubStatus(selectedSub.id, "cancelled")} className="flex-1 py-2 bg-red-500/10 text-red-400 rounded-md font-body text-xs tracking-wider hover:bg-red-500/20 transition-colors">Cancel</button>
+                  <button onClick={() => updateSubStatus(selectedSub.id, "cancelled")} className="flex-1 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md font-body text-xs tracking-wider hover:bg-red-500/20 transition-colors">Cancel</button>
                 )}
               </div>
             </div>

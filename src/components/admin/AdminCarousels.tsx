@@ -106,7 +106,7 @@ const AdminCarousels = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-2xl font-light">Carousel Images</h2>
-          <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mt-1">
+          <p className="font-body text-sm text-muted-foreground mt-1">
             Manage hero carousel images for each category page
           </p>
         </div>
@@ -129,7 +129,7 @@ const AdminCarousels = () => {
             className={`px-4 py-2 rounded-md font-body text-xs tracking-wider capitalize transition-colors ${
               activeCategory === cat
                 ? "bg-accent text-accent-foreground"
-                : "text-[hsl(35,20%,90%)]/50 hover:text-[hsl(35,20%,90%)]/80 hover:bg-[hsl(25,12%,14%)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
           >
             {cat} ({config[cat].length})
@@ -140,12 +140,12 @@ const AdminCarousels = () => {
       {/* Slides list */}
       <div className="space-y-4 mb-6">
         {slides.length === 0 ? (
-          <div className="border border-dashed border-[hsl(25,12%,20%)] rounded-lg p-12 text-center">
-            <ImageIcon size={32} className="mx-auto mb-3 text-[hsl(35,20%,90%)]/20" />
-            <p className="font-body text-sm text-[hsl(35,20%,90%)]/30">
+          <div className="border border-dashed border-border rounded-lg p-12 text-center">
+            <ImageIcon size={32} className="mx-auto mb-3 text-muted-foreground/40" />
+            <p className="font-body text-sm text-muted-foreground">
               No carousel images for {activeCategory}
             </p>
-            <p className="font-body text-xs text-[hsl(35,20%,90%)]/20 mt-1">
+            <p className="font-body text-xs text-muted-foreground/60 mt-1">
               Add image URLs to create carousel slides. Falls back to default images if empty.
             </p>
           </div>
@@ -153,12 +153,12 @@ const AdminCarousels = () => {
           slides.map((slide, index) => (
             <div
               key={index}
-              className="border border-[hsl(25,12%,20%)] rounded-lg p-4 bg-[hsl(25,15%,10%)] flex gap-4 items-start"
+              className="border border-border rounded-lg p-4 bg-card flex gap-4 items-start"
             >
-              <GripVertical size={16} className="text-[hsl(35,20%,90%)]/20 mt-2 shrink-0" />
+              <GripVertical size={16} className="text-muted-foreground/40 mt-2 shrink-0" />
 
               {/* Preview */}
-              <div className="w-24 h-16 bg-[hsl(25,15%,12%)] rounded overflow-hidden shrink-0">
+              <div className="w-24 h-16 bg-secondary rounded overflow-hidden shrink-0">
                 {slide.image_url ? (
                   <img
                     src={slide.image_url}
@@ -170,39 +170,39 @@ const AdminCarousels = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon size={16} className="text-[hsl(35,20%,90%)]/20" />
+                    <ImageIcon size={16} className="text-muted-foreground/40" />
                   </div>
                 )}
               </div>
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                  <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">
                     Image URL
                   </Label>
                   <Input
                     value={slide.image_url}
                     onChange={(e) => updateSlide(index, "image_url", e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+                    className="mt-1 bg-secondary border-border font-body text-sm"
                   />
                 </div>
                 <div>
-                  <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+                  <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">
                     Alt Text
                   </Label>
                   <Input
                     value={slide.alt_text}
                     onChange={(e) => updateSlide(index, "alt_text", e.target.value)}
                     placeholder="Description of the image"
-                    className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+                    className="mt-1 bg-secondary border-border font-body text-sm"
                   />
                 </div>
               </div>
 
               <button
                 onClick={() => removeSlide(index)}
-                className="text-[hsl(35,20%,90%)]/40 hover:text-destructive transition-colors mt-2"
+                className="text-muted-foreground hover:text-destructive transition-colors mt-2"
               >
                 <Trash2 size={14} />
               </button>
@@ -214,7 +214,7 @@ const AdminCarousels = () => {
       <Button
         onClick={addSlide}
         variant="outline"
-        className="border-[hsl(25,12%,20%)] text-[hsl(35,20%,90%)]/60 font-body text-xs tracking-wider"
+        className="border-border text-muted-foreground font-body text-xs tracking-wider"
       >
         <Plus size={14} className="mr-1" /> Add Slide
       </Button>

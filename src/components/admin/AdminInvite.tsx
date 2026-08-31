@@ -76,15 +76,15 @@ const AdminInvite = () => {
   return (
     <div className="max-w-2xl">
       <h2 className="font-display text-2xl font-light mb-1">Invite Admin</h2>
-      <p className="font-body text-sm text-[hsl(35,20%,90%)]/40 mb-8">
+      <p className="font-body text-sm text-muted-foreground mb-8">
         Add administrators to manage your site
       </p>
 
       {/* Invite form */}
-      <div className="border border-[hsl(25,12%,20%)] rounded-lg p-5 bg-[hsl(25,15%,10%)] mb-8">
+      <div className="border border-border rounded-lg p-5 bg-card mb-8">
         <div className="flex gap-3">
           <div className="flex-1">
-            <Label className="font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/60">
+            <Label className="font-body text-xs tracking-wider uppercase text-muted-foreground">
               Email Address
             </Label>
             <Input
@@ -92,7 +92,7 @@ const AdminInvite = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@example.com"
-              className="mt-1 bg-[hsl(25,15%,12%)] border-[hsl(25,12%,20%)] font-body text-sm"
+              className="mt-1 bg-secondary border-border font-body text-sm"
             />
           </div>
           <div className="flex items-end">
@@ -108,34 +108,34 @@ const AdminInvite = () => {
       </div>
 
       {/* Admin list */}
-      <div className="border border-[hsl(25,12%,20%)] rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-[hsl(25,12%,20%)] bg-[hsl(25,15%,10%)]">
-              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">User</th>
-              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Role</th>
-              <th className="text-right px-5 py-3 font-body text-xs tracking-wider uppercase text-[hsl(35,20%,90%)]/40">Actions</th>
+            <tr className="border-b border-border bg-card">
+              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">User</th>
+              <th className="text-left px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Role</th>
+              <th className="text-right px-5 py-3 font-body text-xs tracking-wider uppercase text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {admins.length === 0 ? (
               <tr>
                 <td colSpan={3} className="px-5 py-8 text-center">
-                  <Shield size={24} className="mx-auto mb-2 text-[hsl(35,20%,90%)]/20" />
-                  <p className="font-body text-sm text-[hsl(35,20%,90%)]/30">No admins yet</p>
+                  <Shield size={24} className="mx-auto mb-2 text-muted-foreground/40" />
+                  <p className="font-body text-sm text-muted-foreground">No admins yet</p>
                 </td>
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.user_id} className="border-b border-[hsl(25,12%,18%)] last:border-0">
-                  <td className="px-5 py-3 font-body text-sm">{admin.email || admin.user_id}</td>
+                <tr key={admin.user_id} className="border-b border-border last:border-0">
+                  <td className="px-5 py-3 font-body text-sm text-foreground">{admin.email || admin.user_id}</td>
                   <td className="px-5 py-3">
                     <span className="font-body text-xs px-2 py-1 rounded bg-accent/20 text-accent capitalize">
                       {admin.role}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => removeAdmin(admin.user_id)} className="text-[hsl(35,20%,90%)]/40 hover:text-destructive">
+                    <button onClick={() => removeAdmin(admin.user_id)} className="text-muted-foreground hover:text-destructive transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </td>
