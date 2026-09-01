@@ -281,4 +281,53 @@ router.post('/admin/notifications/broadcast', async (req: AuthRequest, res: Resp
   }
 });
 
+// ══════════════════════════════════════════════
+//  Admin shortcuts used by the admin CMS panel
+// ══════════════════════════════════════════════
+
+router.post('/notifications', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, message, type, target_user_id } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ success: false, error: 'title and message required' });
+    }
+    if (target_user_id) {
+      await createNotification(target_user_id, type || 'admin', title, message);
+      return res.json({ success: true });
+    }
+    const subs = await sql("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
+    let sent = 0;
+    for (const sub of subs) {
+      await createNotification(sub.user_id, type || 'announcement', title, message);
+      sent++;
+    }
+    if (sent === 0) {
+      await createNotification(req.userId!, type || 'admin', title, message);
+      sent = 1;
+    }
+    res.json({ success: true, data: { sent } });
+  } catch (err: any) {
+    logger.error('Failed to send notification', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to send notification' });
+  }
+});
+
+router.get('/monthly-box', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const rows = await sql(
+      `SELECT mb.*, u.email as user_email
+       FROM public.monthly_boxes mb
+       LEFT JOIN public.profiles u ON mb.user_id = u.id
+       ORDER BY mb.created_at DESC LIMIT 100`
+    );
+    for (const row of rows) {
+      row.items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+    }
+    res.json({ success: true, data: rows });
+  } catch (err: any) {
+    logger.error('Failed to fetch monthly boxes', { error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch monthly boxes' });
+  }
+});
+
 export default router;

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Package, Sparkles, Star, Crown, Check, Shirt, Palette, Truck, RotateCcw, Heart, Sparkles as SparkleIcon } from "lucide-react";
+import { ArrowUpRight, Package, Sparkles, Star, Crown, Check, Shirt, Palette, Truck, RotateCcw, Heart, MessageSquare } from "lucide-react";
 
 const plans = [
   { name: "Essentials", price: "149", items: "2–3 items", desc: "Everyday basics curated to your taste", color: "border-border/40", icon: Sparkles },
@@ -11,8 +11,19 @@ const plans = [
 const steps = [
   {
     step: "1",
-    title: "Pick Your Plan",
-    desc: "Choose Essentials, Premium, or Luxe. Each tier unlocks more exclusive pieces and higher-value items.",
+    title: "Take the Style Quiz",
+    desc: "Tell us your style DNA, sizes, colours, budget, and lifestyle. It takes 2 minutes and helps us recommend the perfect plan.",
+    details: [
+      "Pick your style personality (Minimalist, Streetwear, etc.)",
+      "Select sizes, colour palette, and budget range",
+      "Tell us your lifestyle: workwear, casual, date night",
+    ],
+    icon: Palette,
+  },
+  {
+    step: "2",
+    title: "Choose Your Plan",
+    desc: "We'll recommend a tier based on your quiz. Or pick your own — Essentials, Premium, or Luxe. Switch anytime.",
     details: [
       "Essentials (GH¢149/mo): 2–3 everyday basics",
       "Premium (GH¢299/mo): 4–5 curated looks + exclusives",
@@ -21,35 +32,24 @@ const steps = [
     icon: Package,
   },
   {
-    step: "2",
-    title: "Tell Us Your Style",
-    desc: "Take a quick style quiz so we know your sizes, preferred colors, and what occasions you dress for.",
-    details: [
-      "Select your sizes (top, bottom, shoe)",
-      "Pick your color palette and style mood",
-      "Tell us your lifestyle: casual, office, events",
-    ],
-    icon: Palette,
-  },
-  {
     step: "3",
-    title: "Browse & Pick Monthly",
-    desc: "Explore the full catalog, heart the pieces you love, and build your dream box. Change your picks every month.",
+    title: "Build Your Box",
+    desc: "Pick a theme (Workwear, Date Night, Streetwear…), browse the catalog, and select your favourites. Or let our stylists surprise you.",
     details: [
-      "Filter by category, tier, size, and color",
-      "Save favorites to your wishlist",
-      "Swap items before your next delivery",
+      "Choose a monthly theme for your box",
+      "Browse and pick items that match your style",
+      "Add notes for your stylist if you need something specific",
     ],
     icon: Shirt,
   },
   {
     step: "4",
     title: "We Curate & Deliver",
-    desc: "Our stylists fill the rest of your box with pieces that match your taste. Free delivery, every single month.",
+    desc: "Our stylists fill the rest of your box with pieces that match your taste. Free delivery, free returns, every single month.",
     details: [
       "Expert stylists complement your picks",
       "Free delivery across Ghana",
-      "Track your order from warehouse to door",
+      "Keep 5+ items and save 10% next month",
     ],
     icon: Truck,
   },
@@ -58,7 +58,7 @@ const steps = [
 const features = [
   { icon: RotateCcw, title: "Swap Anytime", desc: "Don't like something in your box? Swap it before we ship. Your box, your rules." },
   { icon: Heart, title: "Wishlist Engineering", desc: "Save pieces you love. If they're locked to a higher tier, your wishlist shows you exactly what upgrading unlocks." },
-  { icon: SparkleIcon, title: "Surprise Extras", desc: "Every box includes a surprise piece chosen by our stylists — something you wouldn't have picked yourself." },
+  { icon: MessageSquare, title: "Stylist Notes", desc: "Leave notes for your curator each month. Tell them what you need, what you love, what to avoid." },
 ];
 
 const CollectionsGrid = () => {
@@ -81,10 +81,10 @@ const CollectionsGrid = () => {
           </h2>
         </div>
         <Link
-          to="/shop"
+          to="/subscription/quiz"
           className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground hover:text-foreground transition-colors duration-300 border-b border-border pb-1 self-start sm:self-auto"
         >
-          Browse catalog
+          Take the style quiz
           <ArrowUpRight size={14} />
         </Link>
       </motion.div>
@@ -118,14 +118,14 @@ const CollectionsGrid = () => {
               <p className="text-muted-foreground font-body text-sm mb-2">{plan.desc}</p>
               <p className="text-accent font-body text-xs mb-6">{plan.items} in your box</p>
               <Link
-                to={`/subscription/plans`}
+                to={`/subscription/quiz?plan=current`}
                 className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-[11px] tracking-[0.15em] uppercase font-body font-medium transition-all duration-300 mt-auto ${
                   plan.featured
                     ? "bg-accent text-accent-foreground hover:bg-accent/90"
                     : "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
-                <Package size={14} /> Choose Plan
+                <Sparkles size={14} /> Start with Quiz
               </Link>
             </motion.div>
           );
@@ -137,7 +137,7 @@ const CollectionsGrid = () => {
         <div className="text-center mb-12">
           <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-body mb-3">The Process</p>
           <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-            From sign-up to doorstep in <span className="italic text-accent">4 simple steps</span>
+            From quiz to doorstep in <span className="italic text-accent">4 simple steps</span>
           </h3>
         </div>
 

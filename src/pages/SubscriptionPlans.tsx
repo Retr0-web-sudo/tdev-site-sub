@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Check, ArrowRight, Sparkles, Crown, Star } from "lucide-react";
+import { Check, ArrowRight, Sparkles, Crown, Star, Zap, Package, Truck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
@@ -33,9 +33,22 @@ const planAccents: Record<string, string> = {
   luxe: "border-accent/30",
 };
 
+const FREQUENCIES = [
+  { id: "monthly", label: "Monthly", discount: 0, desc: "Fresh picks every month" },
+  { id: "bimonthly", label: "Bi-Monthly", discount: 5, desc: "Every 2 months — save 5%" },
+  { id: "quarterly", label: "Quarterly", discount: 10, desc: "Every 3 months — save 10%" },
+];
+
+const KEEP_DISCOUNTS = [
+  { min: 3, discount: 0, label: "Keep 3+ items" },
+  { min: 4, discount: 5, label: "Keep 4+ items — 5% off" },
+  { min: 5, discount: 10, label: "Keep 5+ items — 10% off" },
+];
+
 const SubscriptionPlans = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [frequency, setFrequency] = useState("monthly");
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -46,10 +59,16 @@ const SubscriptionPlans = () => {
     fetchPlans();
   }, []);
 
+  const getDiscountedPrice = (basePrice: number) => {
+    const freq = FREQUENCIES.find(f => f.id === frequency);
+    if (!freq || freq.discount === 0) return basePrice;
+    return Math.round(basePrice * (1 - freq.discount / 100));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Seo
-        title="Subscription Plans — TDEV Closet"
+        title="Subscription Plans — TDEV"
         description="Choose your monthly clothing subscription. Essentials, Premium, or Luxe — curated fashion delivered to your door."
         path="/subscription/plans"
       />
@@ -68,7 +87,7 @@ const SubscriptionPlans = () => {
         </div>
 
         <motion.div
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-8 sm:mb-10"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -85,6 +104,45 @@ const SubscriptionPlans = () => {
           </p>
         </motion.div>
 
+        {/* Frequency Selector */}
+        <motion.div
+          className="flex justify-center mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="inline-flex bg-card/50 border border-border/40 rounded-full p-1">
+            {FREQUENCIES.map((freq) => (
+              <button
+                key={freq.id}
+                onClick={() => setFrequency(freq.id)}
+                className={`relative px-5 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase font-body font-medium transition-all ${
+                  frequency === freq.id
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {freq.label}
+                {freq.discount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
+                    -{freq.discount}%
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Frequency Info */}
+        <motion.p
+          className="text-center text-xs text-muted-foreground font-body mb-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          {FREQUENCIES.find(f => f.id === frequency)?.desc}
+        </motion.p>
+
         {loading ? (
           <p className="text-muted-foreground text-sm text-center">Loading plans…</p>
         ) : (
@@ -93,6 +151,7 @@ const SubscriptionPlans = () => {
               const Icon = planIcons[plan.slug] || Sparkles;
               const accent = planAccents[plan.slug] || planAccents.essentials;
               const isFeatured = plan.slug === "premium";
+              const discountedPrice = getDiscountedPrice(plan.price);
 
               return (
                 <motion.div
@@ -118,10 +177,20 @@ const SubscriptionPlans = () => {
                   </div>
 
                   <div className="mb-6">
+                    {frequency !== "monthly" && (
+                      <span className="text-muted-foreground font-body text-sm line-through mr-2">
+                        GH¢ {plan.price}
+                      </span>
+                    )}
                     <span className="font-display text-4xl font-light text-foreground">
-                      GH¢ {plan.price}
+                      GH¢ {discountedPrice}
                     </span>
-                    <span className="text-muted-foreground font-body text-sm ml-1">/month</span>
+                    <span className="text-muted-foreground font-body text-sm ml-1">/mo</span>
+                    {frequency !== "monthly" && (
+                      <span className="ml-2 text-xs text-green-500 font-body">
+                        Save {FREQUENCIES.find(f => f.id === frequency)?.discount}%
+                      </span>
+                    )}
                   </div>
 
                   <p className="text-muted-foreground font-body text-sm mb-6">
@@ -153,6 +222,37 @@ const SubscriptionPlans = () => {
             })}
           </div>
         )}
+
+        {/* Keep More, Save More */}
+        <motion.div
+          className="mt-16 max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="bg-card/50 border border-border/40 rounded-xl p-6 sm:p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                <Package size={18} className="text-accent" />
+              </div>
+              <div>
+                <h3 className="font-display text-xl font-light text-foreground">Keep More, Save More</h3>
+                <p className="text-xs text-muted-foreground font-body">The more you keep, the more you save</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {KEEP_DISCOUNTS.map((tier) => (
+                <div key={tier.min} className="text-center p-3 bg-secondary/30 rounded-lg">
+                  <p className="font-display text-2xl font-light text-foreground">
+                    {tier.discount > 0 ? `-${tier.discount}%` : "—"}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-body mt-1">{tier.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
 
         {/* Comparison Table */}
         <motion.div
@@ -198,6 +298,27 @@ const SubscriptionPlans = () => {
           </div>
         </motion.div>
 
+        {/* Trust Badges */}
+        <motion.div
+          className="mt-16 flex flex-wrap justify-center gap-6 sm:gap-10"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          {[
+            { icon: <Truck size={18} />, label: "Free Delivery" },
+            { icon: <Package size={18} />, label: "Free Returns" },
+            { icon: <Zap size={18} />, label: "No Commitment" },
+            { icon: <Star size={18} />, label: "Expert Curators" },
+          ].map((badge, i) => (
+            <div key={i} className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-accent">{badge.icon}</span>
+              <span className="text-xs font-body tracking-wider uppercase">{badge.label}</span>
+            </div>
+          ))}
+        </motion.div>
+
         {/* FAQ */}
         <motion.div
           className="mt-20 max-w-2xl mx-auto"
@@ -215,6 +336,7 @@ const SubscriptionPlans = () => {
               { q: "How do returns work?", a: "Try everything on. Return any items you do not want within 5 days (7 for Luxe) for a free swap." },
               { q: "Can I pause my subscription?", a: "Yes. Pause for up to 3 months. Your stylist profile is saved for when you come back." },
               { q: "What payment methods are accepted?", a: "Mobile Money (MTN MoMo, Vodafone Cash, AirtelTigo), debit cards, and bank transfers." },
+              { q: "How does 'Keep More, Save More' work?", a: "When you keep 4+ items from your box, you get 5% off. Keep 5+ items and get 10% off your next month." },
             ].map((faq, i) => (
               <details key={i} className="group bg-card/30 border border-border/30 rounded-lg overflow-hidden">
                 <summary className="px-5 py-4 cursor-pointer text-sm font-body font-medium text-foreground hover:text-accent transition-colors">

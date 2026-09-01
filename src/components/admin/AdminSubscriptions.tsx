@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCw, Users, DollarSign, TrendingUp, Pause, Play, X, Eye, Plus, Edit3, Package, ClipboardList, Brain, Truck, CheckCircle, Clock } from "lucide-react";
+import { RefreshCw, Users, DollarSign, TrendingUp, Pause, Play, X, Eye, Plus, Edit3, Package, ClipboardList, Brain, Truck, CheckCircle, Clock, Bell, Send, Inbox } from "lucide-react";
 
 const API = "";
 
@@ -94,12 +94,15 @@ const AdminSubscriptions = () => {
   const [plans, setPlans] = useState<SubPlan[]>([]);
   const [orders, setOrders] = useState<SubOrder[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [monthlyBoxes, setMonthlyBoxes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<SubOrder | null>(null);
-  const [activeView, setActiveView] = useState<"overview" | "subscriptions" | "orders" | "plans" | "quizzes">("overview");
+  const [activeView, setActiveView] = useState<"overview" | "subscriptions" | "orders" | "plans" | "quizzes" | "notifications" | "boxes">("overview");
   const [editingPlan, setEditingPlan] = useState<SubPlan | null>(null);
   const [planForm, setPlanForm] = useState({ name: "", slug: "", price: "", description: "", features: "", item_count_min: "2", item_count_max: "5", interval: "monthly" });
+  const [notifForm, setNotifForm] = useState({ title: "", message: "", type: "info" as "info" | "warning" | "success" | "shipping", target_user_id: "" });
 
   const authHeaders = () => {
     const token = localStorage.getItem("tdev_token");
@@ -109,23 +112,29 @@ const AdminSubscriptions = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, subsRes, plansRes, ordersRes, quizzesRes] = await Promise.all([
+      const [statsRes, subsRes, plansRes, ordersRes, quizzesRes, notifsRes, boxesRes] = await Promise.all([
         fetch(`${API}/api/admin/subscription-stats`, { headers: authHeaders() }),
         fetch(`${API}/api/admin/subscriptions`, { headers: authHeaders() }),
         fetch(`${API}/api/subscription-plans`),
         fetch(`${API}/api/admin/subscription-orders`, { headers: authHeaders() }),
         fetch(`${API}/api/admin/style-quizzes`, { headers: authHeaders() }),
+        fetch(`${API}/api/notifications`, { headers: authHeaders() }).catch(() => ({ json: () => ({ success: false, data: [] }) })),
+        fetch(`${API}/api/monthly-box`, { headers: authHeaders() }).catch(() => ({ json: () => ({ success: false, data: [] }) })),
       ]);
       const statsD = await statsRes.json();
       const subsD = await subsRes.json();
       const plansD = await plansRes.json();
       const ordersD = await ordersRes.json();
       const quizzesD = await quizzesRes.json();
+      const notifsD = await notifsRes.json();
+      const boxesD = await boxesRes.json();
       if (statsD.success) setStats(statsD.data);
       if (subsD.success) setSubs(subsD.data);
       if (plansD.success) setPlans(plansD.data);
       if (ordersD.success) setOrders(ordersD.data);
       if (quizzesD.success) setQuizzes(quizzesD.data);
+      if (notifsD.success) setNotifications(notifsD.data);
+      if (boxesD.success) setMonthlyBoxes(boxesD.data);
     } catch (err) {
       console.error("Failed to fetch subscription data:", err);
     }
@@ -194,6 +203,33 @@ const AdminSubscriptions = () => {
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
   const formatCedi = (n: number) => `GH\u20B5${Number(n || 0).toFixed(2)}`;
 
+  const sendNotification = async () => {
+    try {
+      const res = await fetch(`${API}/api/notifications`, {
+        method: "POST", headers: authHeaders(), body: JSON.stringify(notifForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotifForm({ title: "", message: "", type: "info", target_user_id: "" });
+        fetchData();
+      }
+    } catch (err) { console.error("Failed to send notification:", err); }
+  };
+
+  const markNotifRead = async (id: string) => {
+    try {
+      await fetch(`${API}/api/notifications/${id}/read`, { method: "PUT", headers: authHeaders() });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteNotif = async (id: string) => {
+    try {
+      await fetch(`${API}/api/notifications/${id}`, { method: "DELETE", headers: authHeaders() });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) { console.error(err); }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -222,6 +258,8 @@ const AdminSubscriptions = () => {
           { id: "orders", label: "Orders", icon: ClipboardList },
           { id: "plans", label: "Plans", icon: Package },
           { id: "quizzes", label: "Style Quizzes", icon: Brain },
+          { id: "notifications", label: "Notifications", icon: Bell },
+          { id: "boxes", label: "Monthly Boxes", icon: Inbox },
         ] as const).map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setActiveView(id)} className={`flex items-center gap-2 px-4 py-2 rounded-t-md font-body text-xs tracking-wider whitespace-nowrap transition-colors ${
             activeView === id ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -393,6 +431,76 @@ const AdminSubscriptions = () => {
                 ))}
               </div>
               {q.notes && <p className="mt-2 text-xs font-body text-muted-foreground italic">"{q.notes}"</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Notifications */}
+      {activeView === "notifications" && (
+        <div className="space-y-4">
+          {/* Send Notification Form */}
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="font-body text-sm tracking-wider text-foreground mb-4 flex items-center gap-2"><Send size={14} /> Send Notification</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <input placeholder="Title" value={notifForm.title} onChange={(e) => setNotifForm({ ...notifForm, title: e.target.value })} className="bg-secondary/50 border border-border/40 rounded-lg px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50" />
+              <select value={notifForm.type} onChange={(e) => setNotifForm({ ...notifForm, type: e.target.value as any })} className="bg-secondary/50 border border-border/40 rounded-lg px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:border-accent/50">
+                <option value="info">Info</option>
+                <option value="success">Success</option>
+                <option value="warning">Warning</option>
+                <option value="shipping">Shipping</option>
+              </select>
+            </div>
+            <textarea placeholder="Message" value={notifForm.message} onChange={(e) => setNotifForm({ ...notifForm, message: e.target.value })} rows={3} className="w-full bg-secondary/50 border border-border/40 rounded-lg px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 mb-3" />
+            <button onClick={sendNotification} disabled={!notifForm.title || !notifForm.message} className="px-4 py-2 bg-accent text-accent-foreground rounded-md text-[11px] tracking-wider font-body font-medium hover:bg-accent/90 transition-colors disabled:opacity-40">
+              Send to All Subscribers
+            </button>
+          </div>
+
+          {/* Notifications List */}
+          <div className="space-y-2">
+            {notifications.length === 0 ? (
+              <div className="text-center py-16"><Bell size={40} className="mx-auto mb-4 text-muted-foreground/20" /><p className="font-body text-sm text-muted-foreground">No notifications sent yet.</p></div>
+            ) : notifications.map((n: any) => (
+              <div key={n.id} className={`bg-card border rounded-lg p-4 flex items-center justify-between ${n.is_read ? "border-border/40 opacity-60" : "border-accent/20"}`}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Bell size={16} className={n.is_read ? "text-muted-foreground" : "text-accent"} />
+                  <div>
+                    <p className="font-body text-sm text-foreground">{n.title}</p>
+                    <p className="font-body text-xs text-muted-foreground truncate">{n.message}</p>
+                    <p className="font-body text-[10px] text-muted-foreground/60 mt-1">{formatDate(n.created_at)} · {n.type || "info"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  {!n.is_read && <button onClick={() => markNotifRead(n.id)} className="px-2 py-1 text-[10px] font-body text-accent hover:bg-accent/10 rounded transition-colors">Mark Read</button>}
+                  <button onClick={() => deleteNotif(n.id)} className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors"><X size={12} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Boxes */}
+      {activeView === "boxes" && (
+        <div className="space-y-2">
+          {monthlyBoxes.length === 0 ? (
+            <div className="text-center py-16"><Inbox size={40} className="mx-auto mb-4 text-muted-foreground/20" /><p className="font-body text-sm text-muted-foreground">No monthly boxes yet. Boxes are created when subscribers build their monthly selections.</p></div>
+          ) : monthlyBoxes.map((box: any) => (
+            <div key={box.id} className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <span className="font-body text-sm text-foreground">{box.user_name || box.user_id?.slice(0, 8) || "Subscriber"}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-body tracking-wider uppercase ${statusColors[box.status] || "bg-muted text-muted-foreground"}`}>{box.status}</span>
+                </div>
+                <span className="text-xs font-body text-muted-foreground">{formatDate(box.created_at)}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {(box.items || []).map((item: any, i: number) => (
+                  <span key={i} className="px-2 py-0.5 bg-secondary/50 rounded text-[10px] font-body text-foreground/70">{item.name || `Item ${i + 1}`}</span>
+                ))}
+              </div>
+              {box.total_price && <p className="text-xs font-body text-muted-foreground mt-2">Total: {formatCedi(box.total_price)}</p>}
             </div>
           ))}
         </div>

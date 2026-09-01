@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 const HeroSection = () => {
   return (
@@ -15,22 +15,23 @@ const HeroSection = () => {
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           >
             <p className="text-[10px] tracking-[0.5em] uppercase text-accent font-body mb-4">
-              Monthly Subscription
+              No Commitment Required
             </p>
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-foreground leading-[1.05] mb-6">
-              Your style,<br />
-              <span className="italic text-accent">curated for you.</span>
+              All style,<br />
+              <span className="italic text-accent">no risk.</span>
             </h1>
             <p className="text-muted-foreground font-body text-sm sm:text-base max-w-md mb-8 leading-relaxed">
-              Subscribe to a tier, pick outfits you love from our catalog every month, and we'll curate the rest. Delivered to your door.
+              Take a quick style quiz. We'll recommend the perfect plan. Pick outfits monthly, or let our curators surprise you. Free delivery, free returns, cancel anytime.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
-                to="/subscription/plans"
+                to="/subscription/quiz"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-accent text-accent-foreground text-[11px] tracking-[0.15em] uppercase font-body font-medium hover:bg-accent/90 transition-all"
               >
-                See Plans
+                <Sparkles size={14} />
+                Take the Style Quiz
                 <ArrowRight size={14} />
               </Link>
               <Link
@@ -39,6 +40,14 @@ const HeroSection = () => {
               >
                 Browse Catalog
               </Link>
+            </div>
+
+            <div className="flex items-center gap-4 mt-8 text-[10px] tracking-[0.2em] uppercase text-muted-foreground/50 font-body">
+              <span>Free delivery</span>
+              <span>·</span>
+              <span>Free returns</span>
+              <span>·</span>
+              <span>Cancel anytime</span>
             </div>
           </motion.div>
 
@@ -79,7 +88,7 @@ const HeroSection = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.8 }}
             >
-              Free delivery · Cancel anytime · Pick monthly
+              Free delivery · Free returns · Keep more, save more
             </motion.p>
           </motion.div>
         </div>

@@ -1,0 +1,902 @@
+[
+  {
+    "name": "CAPSULE*",
+    "slug": "Capsule Tdev-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "Capsule Collection| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Signature TDEV Tee",
+    "slug": "Signature Tdev-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "TDEV SIGNATURE| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "luxe"
+  },
+  {
+    "name": "ACRN Tee",
+    "slug": "ACRN-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "ACRN | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Auto Girly Tee",
+    "slug": "Auto Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "AUTO GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Beauy Girly Tee",
+    "slug": "Beauy Girly Tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "BEAUTY GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Builder Girly Tee",
+    "slug": "Builder Girly Tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "BUILDER GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Caf\u00e9 Girly Tee",
+    "slug": "Caf\u00e9 Girly-Tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "CAFE GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "ED Girly Tee",
+    "slug": "ED Girly Tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "ED GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Faith Girly Tee",
+    "slug": "Faith Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "FAITH GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Family Girly Tee",
+    "slug": "Family Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "FAMILY GIRLY | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Family Boi Tee",
+    "slug": "Family Boi-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Homme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "FAMILY BOI | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Gen Tee",
+    "slug": "Gen-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "GEN | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Global Tee",
+    "slug": "Global-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "GLOBAL | TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Hip Hop Tee",
+    "slug": "Hip Hop-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "HIP HOP| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Industry Boi Tee",
+    "slug": "Industry Boi-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Homme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "INDUSTRY BOI| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Industry Girly Tee",
+    "slug": "Industry Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "INDUSTRY GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Mane Girly Tee",
+    "slug": "Mane Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "MANE GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "ME: Tee",
+    "slug": "ME:-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "ME:| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "MED Girly Tee",
+    "slug": "MED Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "MED GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Posh Girly Tee",
+    "slug": "Posh Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "POSH GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Social Girly Tee",
+    "slug": "Social Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "SOCIAL GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Sports Girly Tee",
+    "slug": "Sports Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "SPORTS GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Statement Tee",
+    "slug": "Statement-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "STATEMENT GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Surf Tee",
+    "slug": "Surf-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "SURF GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Tech Tee",
+    "slug": "Tech-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "TECH GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Traveled Girly Tee",
+    "slug": "Traveled Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "TRAVELED GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "US Girly Tee",
+    "slug": "US Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "US GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "essentials"
+  },
+  {
+    "name": "Wedding Girly Tee",
+    "slug": "Wedding Girly-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Femme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "WEDDING GIRLY| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "Wedding Boi Tee",
+    "slug": "Wedding Boi-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Homme",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "WEDDING BOI| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "premium"
+  },
+  {
+    "name": "*",
+    "slug": "*i-tee",
+    "sku": "",
+    "brand": "TDEV | TENUE DE VILLE",
+    "material": "100% Cotton",
+    "price": 30.0,
+    "compare_at_price": null,
+    "category": "Global",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL "
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Cocao"
+    ],
+    "tags": [
+      "casual",
+      "leisure"
+    ],
+    "description": "*I| TENUE DE VILLE Custom, comfort, refined style. The signature TDEV delivers a distinctive look that works seamlessly from casual outings to layered ensembles. Perfect for building a versatile wardrobe foundation or making a personal statement through wearable art.",
+    "tier": "luxe"
+  }
+]

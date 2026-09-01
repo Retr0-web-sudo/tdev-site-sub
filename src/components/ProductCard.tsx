@@ -15,6 +15,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  if (!product) return null;
   const mainImage = product.images?.[0];
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
   const { isInWishlist, toggleWishlist } = useWishlist();

@@ -5,22 +5,30 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, Minus, Plus, Check, Truck, Shield, RotateCcw } from "lucide-react";
+import { Heart, Check, Truck, Shield, Package, Lock } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { toast } from "sonner";
 import Seo from "@/components/Seo";
+
+const TIER_STYLES: Record<string, { label: string; bg: string; text: string }> = {
+  essentials: { label: "Essentials", bg: "bg-secondary/80", text: "text-muted-foreground" },
+  premium: { label: "Premium", bg: "bg-accent/15", text: "text-accent" },
+  luxe: { label: "Luxe", bg: "bg-amber-500/15", text: "text-amber-400" },
+};
+
+const TIER_PLANS: Record<string, { name: string; min: string; price: string }> = {
+  essentials: { name: "Essentials", min: "2-3 items", price: "GH¢149/mo" },
+  premium: { name: "Premium", min: "4-5 items", price: "GH¢299/mo" },
+  luxe: { name: "Luxe", min: "6-8 items", price: "GH¢499/mo" },
+};
 
 const Product = () => {
   const { slug } = useParams<{ slug: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const { data: product, isLoading } = useQuery({
@@ -51,26 +59,12 @@ const Product = () => {
     enabled: !!product?.category_id,
   });
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      toast.error("Please select a size");
-      return;
-    }
-    if (product.colors && product.colors.length > 0 && !selectedColor) {
-      toast.error("Please select a color");
-      return;
-    }
-    for (let i = 0; i < quantity; i++) {
-      addItem(product, selectedSize ?? undefined, selectedColor ?? undefined);
-    }
-    toast.success(`${quantity}x ${product.name} added to cart`);
-  };
-
   const category = product?.categories as { name: string; slug: string } | null;
   const wishlisted = product ? isInWishlist(product.id) : false;
+  const tier = product ? ((product as any).tier || "essentials") : "essentials";
+  const tierStyle = TIER_STYLES[tier] || TIER_STYLES.essentials;
+  const tierPlan = TIER_PLANS[tier] || TIER_PLANS.essentials;
 
-  // Map known color names to hex for swatches
   const colorMap: Record<string, string> = {
     black: "#111", white: "#fafafa", red: "#dc2626", blue: "#2563eb",
     navy: "#1e3a5f", green: "#16a34a", beige: "#d4c5a9", cream: "#fffdd0",
@@ -80,11 +74,28 @@ const Product = () => {
     camel: "#c19a6b", sage: "#bcb88a", rust: "#b7410e", mustard: "#ffdb58",
     lavender: "#e6e6fa", teal: "#008080", maroon: "#800000", plum: "#8e4585",
     taupe: "#483c32", mocha: "#967969", indigo: "#4b0082", emerald: "#50c878",
+    cocao: "#6b3a2a",
   };
 
   const getSwatchColor = (color: string) => {
     const lower = color.toLowerCase();
     return colorMap[lower] || (color.startsWith("#") ? color : undefined);
+  };
+
+  const handleAddToWishlist = () => {
+    if (!product) return;
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      toast.error("Please select a size first");
+      return;
+    }
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      toast.error("Please select a color first");
+      return;
+    }
+    toggleWishlist(product);
+    if (!isInWishlist(product)) {
+      toast.success(`${product.name} added to your wishlist`);
+    }
   };
 
   return (
@@ -95,7 +106,7 @@ const Product = () => {
           description={
             product.description
               ? product.description.replace(/\s+/g, " ").slice(0, 160)
-              : `Shop ${product.name} from TDEV — sustainable, refined design.`
+              : `Subscribe to receive ${product.name} from TDEV — sustainable, curated fashion.`
           }
           path={`/product/${product.slug}`}
           image={product.images?.[0]}
@@ -111,7 +122,7 @@ const Product = () => {
             offers: {
               "@type": "Offer",
               price: product.price,
-              priceCurrency: "USD",
+              priceCurrency: "GHS",
               availability: product.in_stock
                 ? "https://schema.org/InStock"
                 : "https://schema.org/OutOfStock",
@@ -186,7 +197,7 @@ const Product = () => {
 
                 {/* Wishlist button on image */}
                 <button
-                  onClick={() => toggleWishlist(product)}
+                  onClick={handleAddToWishlist}
                   aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
                   aria-pressed={wishlisted}
                   className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-background hover:scale-110 z-10"
@@ -199,6 +210,10 @@ const Product = () => {
 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  <span className={`${tierStyle.bg} ${tierStyle.text} text-[10px] font-body font-semibold tracking-wider uppercase px-3 py-1.5 backdrop-blur-sm`}>
+                    {tier === "luxe" && <Lock size={9} className="inline mr-1" />}
+                    {tierStyle.label}
+                  </span>
                   {product.compare_at_price && product.compare_at_price > product.price && (
                     <span className="bg-accent text-accent-foreground text-[10px] font-body font-semibold tracking-wider uppercase px-3 py-1.5">
                       {Math.round((1 - product.price / product.compare_at_price) * 100)}% OFF
@@ -238,23 +253,35 @@ const Product = () => {
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-2">
                 <span className="font-body text-2xl font-medium text-foreground">
-                  ${product.price.toFixed(2)}
+                  GH¢ {product.price.toFixed(2)}
                 </span>
                 {product.compare_at_price && product.compare_at_price > product.price && (
                   <>
                     <span className="font-body text-sm text-muted-foreground line-through">
-                      ${product.compare_at_price.toFixed(2)}
+                      GH¢ {product.compare_at_price.toFixed(2)}
                     </span>
                     <span className="font-body text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded">
-                      Save ${(product.compare_at_price - product.price).toFixed(2)}
+                      Save GH¢ {(product.compare_at_price - product.price).toFixed(2)}
                     </span>
                   </>
                 )}
               </div>
 
+              {/* Tier info */}
+              <div className={`inline-flex items-center gap-2 mb-4 px-3 py-2 rounded-sm ${tierStyle.bg} w-fit`}>
+                {tier === "luxe" && <Lock size={12} className={tierStyle.text} />}
+                <span className={`font-body text-xs font-medium ${tierStyle.text}`}>
+                  {tierPlan.name} — {tierPlan.min}
+                </span>
+                <span className="font-body text-xs text-muted-foreground">•</span>
+                <span className="font-body text-xs text-muted-foreground">
+                  Included in {tierPlan.price} plan
+                </span>
+              </div>
+
               {/* Stock indicator */}
-              <p className={`font-body text-xs tracking-wider mb-6 ${product.in_stock ? "text-accent" : "text-destructive"}`}>
-                {product.in_stock ? "● In Stock — Ready to Ship" : "● Currently Unavailable"}
+              <p className={`font-body text-xs tracking-wider mb-6 ${product.in_stock ? "text-green-400" : "text-destructive"}`}>
+                {product.in_stock ? "● Available — Add to wishlist for your next box" : "● Currently Unavailable"}
               </p>
 
               {product.description && (
@@ -263,7 +290,7 @@ const Product = () => {
                 </p>
               )}
 
-              {/* Colors — visual swatches */}
+              {/* Colors */}
               {product.colors && product.colors.length > 0 && (
                 <div className="mb-6">
                   <p className="text-xs tracking-[0.25em] uppercase font-body text-muted-foreground mb-3">
@@ -298,7 +325,7 @@ const Product = () => {
                 </div>
               )}
 
-              {/* Sizes — pill/chip selector */}
+              {/* Sizes */}
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-8">
                   <p className="text-xs tracking-[0.25em] uppercase font-body text-muted-foreground mb-3">
@@ -322,33 +349,6 @@ const Product = () => {
                 </div>
               )}
 
-              {/* Quantity selector */}
-              <div className="mb-8">
-                <p className="text-xs tracking-[0.25em] uppercase font-body text-muted-foreground mb-3">
-                  Quantity
-                </p>
-                <div className="inline-flex items-center border border-border rounded-sm">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    aria-label="Decrease quantity"
-                    className="w-10 h-10 flex items-center justify-center text-foreground hover:bg-muted transition-colors"
-                    disabled={quantity <= 1}
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="w-12 h-10 flex items-center justify-center font-body text-sm text-foreground border-x border-border" aria-live="polite" aria-label={`Quantity ${quantity}`}>
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    aria-label="Increase quantity"
-                    className="w-10 h-10 flex items-center justify-center text-foreground hover:bg-muted transition-colors"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
-              </div>
-
               {/* Selection summary */}
               {(selectedSize || selectedColor) && (
                 <motion.div
@@ -361,51 +361,46 @@ const Product = () => {
                     {selectedColor && <span className="text-foreground font-medium">{selectedColor}</span>}
                     {selectedColor && selectedSize && " / "}
                     {selectedSize && <span className="text-foreground font-medium">{selectedSize}</span>}
-                    {" × "}
-                    <span className="text-foreground font-medium">{quantity}</span>
-                    {" — "}
-                    <span className="text-accent font-medium">${(product.price * quantity).toFixed(2)}</span>
                   </p>
                 </motion.div>
               )}
 
-              {/* Add to Cart + Buy Now */}
+              {/* Add to Wishlist CTA */}
               <div className="space-y-3">
-                <Button
-                  onClick={handleAddToCart}
+                <button
+                  onClick={handleAddToWishlist}
                   disabled={!product.in_stock}
-                  className="w-full font-body text-xs tracking-[0.2em] uppercase bg-foreground text-primary-foreground hover:bg-foreground/90 py-6 gap-2"
+                  className={`w-full font-body text-xs tracking-[0.2em] uppercase py-6 gap-2 flex items-center justify-center transition-all duration-300 rounded-sm ${
+                    wishlisted
+                      ? "bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25"
+                      : "bg-foreground text-primary-foreground hover:bg-foreground/90"
+                  }`}
                 >
-                  <ShoppingBag size={18} />
-                  {product.in_stock ? "Add to Cart" : "Out of Stock"}
-                </Button>
+                  <Heart size={18} className={wishlisted ? "fill-accent" : ""} />
+                  {wishlisted ? "In Your Wishlist" : product.in_stock ? "Add to Wishlist" : "Out of Stock"}
+                </button>
 
-                <Button
-                  onClick={() => {
-                    handleAddToCart();
-                    // Future: navigate to checkout
-                  }}
-                  disabled={!product.in_stock}
-                  variant="outline"
-                  className="w-full font-body text-xs tracking-[0.2em] uppercase border-accent text-accent hover:bg-accent hover:text-accent-foreground py-6"
+                <Link
+                  to="/subscription/plans"
+                  className="w-full font-body text-xs tracking-[0.2em] uppercase border-accent text-accent hover:bg-accent hover:text-accent-foreground py-6 flex items-center justify-center transition-all duration-300 rounded-sm border"
                 >
-                  Buy Now
-                </Button>
+                  Subscribe to Get This
+                </Link>
               </div>
 
-              {/* Trust badges */}
+              {/* Subscription trust badges */}
               <div className="mt-8 pt-6 border-t border-border grid grid-cols-3 gap-4">
                 <div className="text-center">
+                  <Package size={18} className="mx-auto text-muted-foreground mb-1.5" />
+                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Monthly Box</p>
+                </div>
+                <div className="text-center">
                   <Truck size={18} className="mx-auto text-muted-foreground mb-1.5" />
-                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Free Shipping</p>
+                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Free Delivery</p>
                 </div>
                 <div className="text-center">
                   <Shield size={18} className="mx-auto text-muted-foreground mb-1.5" />
-                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Secure Payment</p>
-                </div>
-                <div className="text-center">
-                  <RotateCcw size={18} className="mx-auto text-muted-foreground mb-1.5" />
-                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Easy Returns</p>
+                  <p className="font-body text-[10px] tracking-wider uppercase text-muted-foreground">Curated For You</p>
                 </div>
               </div>
             </div>
@@ -413,8 +408,8 @@ const Product = () => {
         ) : (
           <div className="text-center py-20">
             <p className="font-display text-2xl text-muted-foreground">Product not found</p>
-            <Link to="/" className="font-body text-sm text-accent hover:underline mt-4 inline-block">
-              Return Home
+            <Link to="/shop" className="font-body text-sm text-accent hover:underline mt-4 inline-block">
+              Browse Catalog
             </Link>
           </div>
         )}
