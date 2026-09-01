@@ -216,7 +216,11 @@ export const supabase = {
     }
     return { data: null, error: null };
   },
-  channel: (name) => ({ on: () => ({ subscribe: () => {}, unsubscribe: () => {} }), subscribe: () => {}, unsubscribe: () => {} }),
+  channel: (name) => {
+    const noop = () => channelStub;
+    const channelStub = { on: noop, subscribe: () => {}, unsubscribe: () => {} };
+    return channelStub;
+  },
   removeChannel: () => {},
   removeAllChannels: () => {},
   functions: {
