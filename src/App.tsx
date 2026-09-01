@@ -36,6 +36,7 @@ const AppInner = () => {
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/shop" element={<Catalog />} />
         <Route path="/catalog" element={<Catalog />} />
         <Route path="/category/:slug" element={<Category />} />
         <Route path="/product/:slug" element={<Product />} />

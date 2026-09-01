@@ -1,17 +1,64 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Package, Sparkles, Star, Crown, Check } from "lucide-react";
+import { ArrowUpRight, Package, Sparkles, Star, Crown, Check, Shirt, Palette, Truck, RotateCcw, Heart, Sparkles as SparkleIcon } from "lucide-react";
 
 const plans = [
-  { name: "Essentials", price: "149", items: "2–3 items", desc: "Everyday basics curated to your taste", color: "border-border/40" },
-  { name: "Premium", price: "299", items: "4–5 items", desc: "Curated looks with exclusive pieces", color: "border-accent/50", featured: true },
-  { name: "Luxe", price: "499", items: "6–8 items", desc: "Designer-level curation, full wardrobe refresh", color: "border-accent/20" },
+  { name: "Essentials", price: "149", items: "2–3 items", desc: "Everyday basics curated to your taste", color: "border-border/40", icon: Sparkles },
+  { name: "Premium", price: "299", items: "4–5 items", desc: "Curated looks with exclusive pieces", color: "border-accent/50", featured: true, icon: Star },
+  { name: "Luxe", price: "499", items: "6–8 items", desc: "Designer-level curation, full wardrobe refresh", color: "border-accent/20", icon: Crown },
 ];
 
 const steps = [
-  { step: "1", title: "Pick Your Tier", desc: "Essentials, Premium, or Luxe — each unlocks more exclusive pieces." },
-  { step: "2", title: "Choose Monthly", desc: "Browse the catalog and handpick outfits you love. Mix, match, experiment." },
-  { step: "3", title: "We Curate the Rest", desc: "Our stylists fill your box with pieces that match your taste. Delivered monthly." },
+  {
+    step: "1",
+    title: "Pick Your Plan",
+    desc: "Choose Essentials, Premium, or Luxe. Each tier unlocks more exclusive pieces and higher-value items.",
+    details: [
+      "Essentials (GH¢149/mo): 2–3 everyday basics",
+      "Premium (GH¢299/mo): 4–5 curated looks + exclusives",
+      "Luxe (GH¢499/mo): 6–8 designer-level pieces",
+    ],
+    icon: Package,
+  },
+  {
+    step: "2",
+    title: "Tell Us Your Style",
+    desc: "Take a quick style quiz so we know your sizes, preferred colors, and what occasions you dress for.",
+    details: [
+      "Select your sizes (top, bottom, shoe)",
+      "Pick your color palette and style mood",
+      "Tell us your lifestyle: casual, office, events",
+    ],
+    icon: Palette,
+  },
+  {
+    step: "3",
+    title: "Browse & Pick Monthly",
+    desc: "Explore the full catalog, heart the pieces you love, and build your dream box. Change your picks every month.",
+    details: [
+      "Filter by category, tier, size, and color",
+      "Save favorites to your wishlist",
+      "Swap items before your next delivery",
+    ],
+    icon: Shirt,
+  },
+  {
+    step: "4",
+    title: "We Curate & Deliver",
+    desc: "Our stylists fill the rest of your box with pieces that match your taste. Free delivery, every single month.",
+    details: [
+      "Expert stylists complement your picks",
+      "Free delivery across Ghana",
+      "Track your order from warehouse to door",
+    ],
+    icon: Truck,
+  },
+];
+
+const features = [
+  { icon: RotateCcw, title: "Swap Anytime", desc: "Don't like something in your box? Swap it before we ship. Your box, your rules." },
+  { icon: Heart, title: "Wishlist Engineering", desc: "Save pieces you love. If they're locked to a higher tier, your wishlist shows you exactly what upgrading unlocks." },
+  { icon: SparkleIcon, title: "Surprise Extras", desc: "Every box includes a surprise piece chosen by our stylists — something you wouldn't have picked yourself." },
 ];
 
 const CollectionsGrid = () => {
@@ -34,7 +81,7 @@ const CollectionsGrid = () => {
           </h2>
         </div>
         <Link
-          to="/catalog"
+          to="/shop"
           className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground hover:text-foreground transition-colors duration-300 border-b border-border pb-1 self-start sm:self-auto"
         >
           Browse catalog
@@ -44,49 +91,117 @@ const CollectionsGrid = () => {
 
       {/* Plan cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto mb-16 sm:mb-24">
-        {plans.map((plan, i) => (
-          <motion.div
-            key={plan.name}
-            className={`relative flex flex-col bg-card/50 border rounded-xl p-6 sm:p-8 transition-all duration-300 hover:border-accent/30 ${plan.color} ${plan.featured ? "md:-mt-4 md:mb-[-16px]" : ""}`}
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: i * 0.12, ease: "easeOut" }}
-          >
-            {plan.featured && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[9px] tracking-[0.15em] uppercase font-body font-semibold px-3 py-1 rounded-full">
-                Most Popular
-              </div>
-            )}
-            <div className="mb-4">
-              <span className="font-display text-4xl font-light text-foreground">GH¢ {plan.price}</span>
-              <span className="text-muted-foreground font-body text-sm ml-1">/month</span>
-            </div>
-            <p className="text-muted-foreground font-body text-sm mb-2">{plan.desc}</p>
-            <p className="text-accent font-body text-xs mb-6">{plan.items} in your box</p>
-            <Link
-              to={`/subscription/plans`}
-              className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-[11px] tracking-[0.15em] uppercase font-body font-medium transition-all duration-300 mt-auto ${
-                plan.featured
-                  ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                  : "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
+        {plans.map((plan, i) => {
+          const Icon = plan.icon;
+          return (
+            <motion.div
+              key={plan.name}
+              className={`relative flex flex-col bg-card/50 border rounded-xl p-6 sm:p-8 transition-all duration-300 hover:border-accent/30 ${plan.color} ${plan.featured ? "md:-mt-4 md:mb-[-16px]" : ""}`}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: i * 0.12, ease: "easeOut" }}
             >
-              <Package size={14} /> Choose Plan
-            </Link>
-          </motion.div>
-        ))}
+              {plan.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[9px] tracking-[0.15em] uppercase font-body font-semibold px-3 py-1 rounded-full">
+                  Most Popular
+                </div>
+              )}
+              <div className="flex items-center gap-2 mb-4">
+                <Icon size={18} className="text-accent" />
+                <span className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground">{plan.name}</span>
+              </div>
+              <div className="mb-4">
+                <span className="font-display text-4xl font-light text-foreground">GH¢ {plan.price}</span>
+                <span className="text-muted-foreground font-body text-sm ml-1">/month</span>
+              </div>
+              <p className="text-muted-foreground font-body text-sm mb-2">{plan.desc}</p>
+              <p className="text-accent font-body text-xs mb-6">{plan.items} in your box</p>
+              <Link
+                to={`/subscription/plans`}
+                className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-[11px] tracking-[0.15em] uppercase font-body font-medium transition-all duration-300 mt-auto ${
+                  plan.featured
+                    ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                    : "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                <Package size={14} /> Choose Plan
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Steps */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        {steps.map((s, i) => (
-          <motion.div key={i} className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}>
-            <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center mx-auto mb-3 font-display text-lg font-light">{s.step}</div>
-            <h3 className="font-display text-lg font-light text-foreground mb-1">{s.title}</h3>
-            <p className="text-muted-foreground font-body text-sm">{s.desc}</p>
-          </motion.div>
-        ))}
+      {/* Detailed Steps */}
+      <div className="max-w-5xl mx-auto mb-16 sm:mb-24">
+        <div className="text-center mb-12">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-body mb-3">The Process</p>
+          <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+            From sign-up to doorstep in <span className="italic text-accent">4 simple steps</span>
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {steps.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={i}
+                className="bg-card/50 border border-border/40 rounded-xl p-6 sm:p-8 hover:border-accent/20 transition-all duration-300"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6 }}
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center flex-shrink-0 font-display text-lg font-light">
+                    {s.step}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon size={16} className="text-accent" />
+                      <h4 className="font-display text-lg font-light text-foreground">{s.title}</h4>
+                    </div>
+                    <p className="text-muted-foreground font-body text-sm leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+                <ul className="ml-14 space-y-1.5">
+                  {s.details.map((detail, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm font-body text-muted-foreground/80">
+                      <Check size={12} className="text-accent mt-0.5 flex-shrink-0" />
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Extra features */}
+      <div className="max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {features.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={i}
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+              >
+                <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center mx-auto mb-3">
+                  <Icon size={18} />
+                </div>
+                <h4 className="font-display text-base font-light text-foreground mb-1">{f.title}</h4>
+                <p className="text-muted-foreground font-body text-sm">{f.desc}</p>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
