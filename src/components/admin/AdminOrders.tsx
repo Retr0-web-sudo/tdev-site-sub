@@ -196,7 +196,7 @@ const AdminOrders = () => {
                               )}
                               <span className="text-muted-foreground ml-2">×{item.quantity}</span>
                             </div>
-                            <span className="text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="text-foreground">GH¢{(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
