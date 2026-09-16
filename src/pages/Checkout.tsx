@@ -180,7 +180,7 @@ const Checkout = () => {
     if (typeof window.FlutterwaveCheckout !== "undefined") {
       window.FlutterwaveCheckout({
         public_key: publicKey,
-        tx_ref: `drip-${Date.now()}`,
+        tx_ref: `tdev-${Date.now()}`,
         amount: totalPrice,
         currency: "NGN",
         customer: { email: shipping.email, name: `${shipping.firstName} ${shipping.lastName}` },
@@ -445,7 +445,7 @@ const Checkout = () => {
                   ) : (
                     <div className="flex gap-2 mt-1">
                       <Input
-                        placeholder="DRIP-XXXXXX"
+                        placeholder="TDEV-XXXXXX"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         className="bg-secondary border-border font-mono text-sm"

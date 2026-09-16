@@ -71,7 +71,11 @@ const Footer = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <div className="col-span-2">
-          <span className="text-2xl sm:text-3xl text-primary-foreground/90 mb-4 sm:mb-5 block" style={{ fontFamily: "'Pacifico', cursive" }}>Drip</span>
+          <img
+            src="/logo-white.png"
+            alt="TDEV | Tenue de Ville"
+            className="h-10 md:h-12 w-auto mb-4 sm:mb-5 block transition-all duration-300"
+          />
           <p className="font-body text-xs sm:text-sm text-primary-foreground/50 leading-[1.8] max-w-xs">
             Curated fashion delivered monthly. Sustainable style, chosen for you.
           </p>

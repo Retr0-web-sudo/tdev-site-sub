@@ -50,8 +50,6 @@ const Navbar = () => {
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  const logoIsLight = !scrolled;
-
   return (
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -61,10 +59,11 @@ const Navbar = () => {
     >
       <div className="section-padding flex items-center justify-between h-16 md:h-20">
         <Link to="/" className="flex items-center group relative z-10">
-          <span className={`text-3xl md:text-4xl transition-all duration-300 group-hover:opacity-80 ${logoIsLight ? "text-white" : "text-foreground"}`}
-            style={{ fontFamily: "'Pacifico', cursive", lineHeight: 1.4, textShadow: logoIsLight ? '0 2px 10px rgba(0,0,0,0.7), 0 0 30px rgba(255,255,255,0.3)' : 'none' }}>
-            Drip
-          </span>
+          <img
+            src="/logo-white.png"
+            alt="TDEV | Tenue de Ville"
+            className="h-10 md:h-12 w-auto transition-all duration-300 group-hover:opacity-80"
+          />
         </Link>
 
         <div className="hidden md:flex items-center gap-8 lg:gap-12 absolute left-1/2 -translate-x-1/2">

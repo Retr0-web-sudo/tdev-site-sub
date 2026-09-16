@@ -4,7 +4,7 @@ const sections = [
   {
     icon: Book,
     title: "Project Overview",
-    content: `TDEV (Drip) is a luxury fashion e-commerce platform with a standalone internal inventory management system, multi-gateway payment configuration, a powerful admin dashboard, a blog system, and 40+ theme presets with seasonal auto-detection. The site runs exclusively in dark mode for a premium aesthetic.`,
+    content: `TDEV (Tenue de Ville) is a luxury fashion e-commerce platform with a standalone internal inventory management system, multi-gateway payment configuration, a powerful admin dashboard, a blog system, and 40+ theme presets with seasonal auto-detection. The site runs exclusively in dark mode for a premium aesthetic.`,
   },
   {
     icon: Package,
