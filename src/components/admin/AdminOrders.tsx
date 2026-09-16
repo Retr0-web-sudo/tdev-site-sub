@@ -143,7 +143,7 @@ const AdminOrders = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="font-display text-lg text-foreground">${Number(order.total).toFixed(2)}</span>
+                    <span className="font-display text-lg text-foreground">GH¢{Number(order.total).toFixed(2)}</span>
                     {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                   </div>
                 </button>

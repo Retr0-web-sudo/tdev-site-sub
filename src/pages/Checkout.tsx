@@ -422,7 +422,7 @@ const Checkout = () => {
                         <p className="font-body text-xs text-muted-foreground">Qty: {item.quantity}</p>
                       </div>
                       <p className="font-body text-sm text-foreground">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        GH¢{(item.product.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}
@@ -460,12 +460,12 @@ const Checkout = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="font-body text-sm text-muted-foreground">Subtotal</span>
-                    <span className="font-body text-sm text-foreground">${totalPrice.toFixed(2)}</span>
+                    <span className="font-body text-sm text-foreground">GH¢{totalPrice.toFixed(2)}</span>
                   </div>
                   {appliedCoupon && (
                     <div className="flex justify-between">
                       <span className="font-body text-sm text-accent">Discount ({appliedCoupon.discount}%)</span>
-                      <span className="font-body text-sm text-accent">-${discountAmount.toFixed(2)}</span>
+                      <span className="font-body text-sm text-accent">-GH¢{discountAmount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -478,7 +478,7 @@ const Checkout = () => {
 
                 <div className="flex justify-between items-center mb-6">
                   <span className="font-body text-sm tracking-wider uppercase text-muted-foreground">Total</span>
-                  <span className="font-display text-2xl text-foreground">${finalTotal.toFixed(2)}</span>
+                  <span className="font-display text-2xl text-foreground">GH¢{finalTotal.toFixed(2)}</span>
                 </div>
 
                 <Button

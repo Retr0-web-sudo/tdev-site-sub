@@ -759,7 +759,7 @@ export interface ThemeSettings {
 }
 
 const defaultSettings: ThemeSettings = {
-  presetId: "warm-sand",
+  presetId: "black-gold",
   neonOverlayId: null,
   fontDisplay: "Cormorant Garamond",
   fontBody: "Outfit",

@@ -98,7 +98,7 @@ const CartDrawer = () => {
                           </button>
                         </div>
                         <span className="font-body text-sm text-foreground">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          GH¢{(item.product.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -113,7 +113,7 @@ const CartDrawer = () => {
                   Subtotal
                 </span>
                 <span className="font-display text-xl text-foreground">
-                  ${totalPrice.toFixed(2)}
+                  GH¢{totalPrice.toFixed(2)}
                 </span>
               </div>
               <p className="font-body text-xs text-muted-foreground">
