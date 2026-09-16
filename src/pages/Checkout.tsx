@@ -156,9 +156,9 @@ const Checkout = () => {
     if (typeof window.PaystackPop !== "undefined") {
       const handler = window.PaystackPop.setup({
         key: publicKey,
-        email: shipping.email,
-        amount: Math.round(totalPrice * 100),
-        currency: "NGN",
+                email: shipping.email,
+                amount: Math.round(totalPrice * 100),
+                currency: "GHS",
         callback: async () => {
           await saveOrder();
           toast.success("Payment successful!");
@@ -181,8 +181,8 @@ const Checkout = () => {
       window.FlutterwaveCheckout({
         public_key: publicKey,
         tx_ref: `tdev-${Date.now()}`,
-        amount: totalPrice,
-        currency: "NGN",
+                amount: totalPrice,
+                currency: "GHS",
         customer: { email: shipping.email, name: `${shipping.firstName} ${shipping.lastName}` },
         callback: async () => {
           await saveOrder();
