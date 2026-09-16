@@ -62,7 +62,7 @@ const Footer = () => {
   const activeSocials = socials.filter((s) => contact.social?.[s.key]);
 
   return (
-    <footer id="contact" className="bg-foreground text-primary-foreground section-padding py-20 md:py-28">
+    <footer id="contact" className="bg-[hsl(0_0%_7%)] text-white section-padding py-20 md:py-28">
       <motion.div
         className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-8 max-w-6xl mx-auto"
         initial={{ opacity: 0, y: 30 }}
@@ -76,13 +76,13 @@ const Footer = () => {
             alt="TDEV | Tenue de Ville"
             className="h-10 md:h-12 w-auto mb-4 sm:mb-5 block transition-all duration-300"
           />
-          <p className="font-body text-xs sm:text-sm text-primary-foreground/50 leading-[1.8] max-w-xs">
+          <p className="font-body text-xs sm:text-sm text-white/50 leading-[1.8] max-w-xs">
             Curated fashion delivered monthly. Sustainable style, chosen for you.
           </p>
         </div>
 
         <div>
-          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">Subscribe</p>
+          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-white/30">Subscribe</p>
           <div className="flex flex-col gap-2 sm:gap-3">
             {[
               { label: "View Plans", href: "/subscription/plans" },
@@ -90,7 +90,7 @@ const Footer = () => {
               { label: "How It Works", href: "/#how-it-works" },
               { label: "My Dashboard", href: "/subscription/dashboard" },
             ].map((link) => (
-              <Link key={link.label} to={link.href} className="group font-body text-xs sm:text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors duration-300 inline-flex items-center gap-1.5 w-fit">
+              <Link key={link.label} to={link.href} className="group font-body text-xs sm:text-sm text-white/60 hover:text-white transition-colors duration-300 inline-flex items-center gap-1.5 w-fit">
                 {link.label}
                 <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </Link>
@@ -99,15 +99,15 @@ const Footer = () => {
         </div>
 
         <div>
-          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-primary-foreground/30">Contact</p>
-          <div className="flex flex-col gap-2 sm:gap-3 font-body text-xs sm:text-sm text-primary-foreground/60">
-            <a href={`mailto:${contact.email}`} className="hover:text-primary-foreground transition-colors duration-300 break-all">{contact.email}</a>
+          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-white/30">Contact</p>
+          <div className="flex flex-col gap-2 sm:gap-3 font-body text-xs sm:text-sm text-white/60">
+            <a href={`mailto:${contact.email}`} className="hover:text-white transition-colors duration-300 break-all">{contact.email}</a>
             <span>{contact.location}</span>
           </div>
           {activeSocials.length > 0 && (
             <div className="flex flex-wrap gap-3 mt-5">
               {activeSocials.map(({ key, label, Icon }) => (
-                <a key={key} href={contact.social[key]} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-primary-foreground/50 hover:text-primary-foreground transition-colors duration-300">
+                <a key={key} href={contact.social[key]} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-white/50 hover:text-white transition-colors duration-300">
                   <Icon size={16} />
                 </a>
               ))}
@@ -118,8 +118,8 @@ const Footer = () => {
 
       <div className="mt-12 sm:mt-20 pt-6 sm:pt-8 border-t border-primary-foreground/8 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          <p className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 tracking-wider text-center sm:text-left">© 2026 TDEV. All rights reserved.</p>
-          <Link to="/admin" className="font-body text-[10px] sm:text-[11px] text-primary-foreground/25 hover:text-primary-foreground/50 tracking-wider transition-colors">Admin</Link>
+          <p className="font-body text-[10px] sm:text-[11px] text-white/25 tracking-wider text-center sm:text-left">© 2026 TDEV. All rights reserved.</p>
+          <Link to="/admin" className="font-body text-[10px] sm:text-[11px] text-white/25 hover:text-white/50 tracking-wider transition-colors">Admin</Link>
         </div>
       </div>
     </footer>
