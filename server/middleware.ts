@@ -7,6 +7,11 @@ import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import crypto from 'crypto';
 
+import { neon } from '@neondatabase/serverless';
+
+const DATABASE_URL = process.env.DATABASE_URL;
+const sql = neon(DATABASE_URL!);
+
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
 
@@ -35,9 +40,19 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 }
 
 // ── Admin Auth Middleware ──
-export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+export async function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (req.userRole !== 'admin') {
     return res.status(403).json({ success: false, error: 'Admin access required' });
+  }
+  // Re-verify against the DB so a demoted/removed admin loses access at once
+  // (JWT role can otherwise stay valid up to expiry).
+  try {
+    const roles = await sql('SELECT role FROM user_roles WHERE user_id = $1 LIMIT 1', [req.userId]);
+    if (roles.length === 0 || roles[0].role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
   next();
 }

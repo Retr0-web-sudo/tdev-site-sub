@@ -61,9 +61,9 @@ const Navbar = () => {
       <div className="section-padding flex items-center justify-between h-16 md:h-20">
         <Link to="/" className="flex items-center group relative z-10">
           <img
-            src="/logo-white.png"
+            src="/logo.png"
             alt="TDEV | Tenue de Ville"
-            className="h-10 md:h-12 w-auto transition-all duration-300 group-hover:opacity-80"
+            className="h-10 md:h-12 w-auto rounded-md bg-white object-contain p-0.5 ring-1 ring-black/10 transition-all duration-300 group-hover:opacity-80"
           />
         </Link>
 

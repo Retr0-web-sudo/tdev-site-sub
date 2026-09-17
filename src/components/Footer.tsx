@@ -72,9 +72,9 @@ const Footer = () => {
       >
         <div className="col-span-2">
           <img
-            src="/logo-white.png"
+            src="/logo.png"
             alt="TDEV | Tenue de Ville"
-            className="h-10 md:h-12 w-auto mb-4 sm:mb-5 block transition-all duration-300"
+            className="h-10 md:h-12 w-auto rounded-md bg-white object-contain p-0.5 ring-1 ring-black/10 mb-4 sm:mb-5 block transition-all duration-300"
           />
           <p className="font-body text-xs sm:text-sm text-white/50 leading-[1.8] max-w-xs">
             Curated fashion delivered monthly. Sustainable style, chosen for you.

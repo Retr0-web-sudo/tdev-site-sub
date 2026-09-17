@@ -17,7 +17,7 @@ import * as Sentry from "@sentry/node";
 // server/routes.ts
 import { Router } from "express";
 import { randomUUID } from "crypto";
-import { neon, neonConfig } from "@neondatabase/serverless";
+import { neon as neon2, neonConfig } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 import jwt2 from "jsonwebtoken";
 
@@ -25,6 +25,9 @@ import jwt2 from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
+import { neon } from "@neondatabase/serverless";
+var DATABASE_URL = process.env.DATABASE_URL;
+var sql = neon(DATABASE_URL);
 var JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error("JWT_SECRET environment variable is required");
 function authenticate(req, res, next) {
@@ -41,9 +44,17 @@ function authenticate(req, res, next) {
     return res.status(401).json({ success: false, error: "Invalid or expired token" });
   }
 }
-function requireAdmin(req, res, next) {
+async function requireAdmin(req, res, next) {
   if (req.userRole !== "admin") {
     return res.status(403).json({ success: false, error: "Admin access required" });
+  }
+  try {
+    const roles = await sql("SELECT role FROM user_roles WHERE user_id = $1 LIMIT 1", [req.userId]);
+    if (roles.length === 0 || roles[0].role !== "admin") {
+      return res.status(403).json({ success: false, error: "Admin access required" });
+    }
+  } catch (err) {
+    return res.status(500).json({ success: false, error: "Internal server error" });
   }
   next();
 }
@@ -234,11 +245,11 @@ var uuidv42 = randomUUID;
 var JWT_SECRET2 = process.env.JWT_SECRET;
 if (!JWT_SECRET2) console.warn("\u26A0\uFE0F  JWT_SECRET not set \u2014 auth will not work");
 var _sql = null;
-async function sql(query, params) {
+async function sql2(query, params) {
   if (!_sql) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL is not set");
-    _sql = neon(url);
+    _sql = neon2(url);
   }
   return await _sql.query(query, params || []);
 }
@@ -273,7 +284,7 @@ function fixNumericFieldsArray(rows) {
 }
 router.get("/health", cacheControl(0), async (_req, res) => {
   try {
-    await sql("SELECT 1", []);
+    await sql2("SELECT 1", []);
     res.json({ success: true, status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
   } catch (err) {
     res.status(503).json({ success: false, status: "unhealthy", error: "Database connection failed" });
@@ -282,7 +293,7 @@ router.get("/health", cacheControl(0), async (_req, res) => {
 router.post("/auth/signup", authLimiter, async (req, res) => {
   try {
     const data = signupSchema.parse(req.body);
-    const existing = await sql(
+    const existing = await sql2(
       `SELECT id FROM profiles WHERE email = $1 LIMIT 1`,
       [data.email]
     );
@@ -291,16 +302,16 @@ router.post("/auth/signup", authLimiter, async (req, res) => {
     }
     const userId = uuidv42();
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    await sql(
+    await sql2(
       `INSERT INTO profiles (id, user_id, email, display_name, created_at, updated_at)
        VALUES ($1, $2, $3, $4, now(), now())`,
       [uuidv42(), userId, data.email, data.displayName || data.email.split("@")[0]]
     );
-    await sql(
+    await sql2(
       `INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`,
       [uuidv42(), userId, "user"]
     );
-    await sql(
+    await sql2(
       `INSERT INTO site_settings (id, key, value) VALUES ($1, $2, $3)`,
       [uuidv42(), `auth_${userId}`, JSON.stringify({ password: hashedPassword })]
     );
@@ -322,7 +333,7 @@ router.post("/auth/signup", authLimiter, async (req, res) => {
 router.post("/auth/login", authLimiter, async (req, res) => {
   try {
     const data = loginSchema.parse(req.body);
-    const users = await sql(
+    const users = await sql2(
       `SELECT id, user_id, email, display_name, avatar_url FROM profiles WHERE email = $1 LIMIT 1`,
       [data.email]
     );
@@ -330,7 +341,7 @@ router.post("/auth/login", authLimiter, async (req, res) => {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
     const user = users[0];
-    const authRecords = await sql(
+    const authRecords = await sql2(
       `SELECT value FROM site_settings WHERE key = $1 LIMIT 1`,
       [`auth_${user.user_id}`]
     );
@@ -342,7 +353,7 @@ router.post("/auth/login", authLimiter, async (req, res) => {
     if (!valid) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
-    const roles = await sql(
+    const roles = await sql2(
       `SELECT role FROM user_roles WHERE user_id = $1 LIMIT 1`,
       [user.user_id]
     );
@@ -370,7 +381,7 @@ router.post("/auth/login", authLimiter, async (req, res) => {
 });
 router.get("/auth/me", authenticate, async (req, res) => {
   try {
-    const users = await sql(
+    const users = await sql2(
       `SELECT p.user_id, p.email, p.display_name, p.avatar_url, COALESCE(ur.role, 'user') as role 
        FROM profiles p 
        LEFT JOIN user_roles ur ON ur.user_id = p.user_id 
@@ -408,24 +419,24 @@ router.put("/auth/me", authenticate, async (req, res) => {
     const { password, displayName, avatarUrl } = req.body;
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
-      const existing = await sql(
+      const existing = await sql2(
         `SELECT id FROM site_settings WHERE key = $1 LIMIT 1`,
         [`auth_${req.userId}`]
       );
       if (existing.length > 0) {
-        await sql(
+        await sql2(
           `UPDATE site_settings SET value = $1, updated_at = now() WHERE key = $2`,
           [JSON.stringify({ password: hashedPassword }), `auth_${req.userId}`]
         );
       } else {
-        await sql(
+        await sql2(
           `INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`,
           [uuidv42(), `auth_${req.userId}`, JSON.stringify({ password: hashedPassword })]
         );
       }
     }
     if (displayName !== void 0 || avatarUrl !== void 0) {
-      await sql(
+      await sql2(
         `UPDATE profiles SET display_name = COALESCE($1, display_name), avatar_url = COALESCE($2, avatar_url), updated_at = now()
          WHERE user_id = $3`,
         [displayName || null, avatarUrl || null, req.userId]
@@ -440,7 +451,7 @@ router.put("/auth/me", authenticate, async (req, res) => {
 router.put("/auth/profile", authenticate, async (req, res) => {
   try {
     const { displayName, avatarUrl } = req.body;
-    await sql(
+    await sql2(
       `UPDATE profiles SET display_name = COALESCE($1, display_name), avatar_url = COALESCE($2, avatar_url), updated_at = now()
        WHERE user_id = $3`,
       [displayName || null, avatarUrl || null, req.userId]
@@ -453,7 +464,7 @@ router.put("/auth/profile", authenticate, async (req, res) => {
 });
 router.get("/products", cacheControl(60), async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM products ORDER BY created_at DESC`);
+    const rows = await sql2(`SELECT * FROM products ORDER BY created_at DESC`);
     return res.json({ success: true, data: fixNumericFieldsArray(rows) });
   } catch (err) {
     logger.error("Products fetch error", { error: err.message });
@@ -462,7 +473,7 @@ router.get("/products", cacheControl(60), async (_req, res) => {
 });
 router.get("/products/id/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [req.params.id]);
+    const rows = await sql2(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [req.params.id]);
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Product not found" });
     }
@@ -474,7 +485,7 @@ router.get("/products/id/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.get("/products/:slug", async (req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM products WHERE slug = $1 LIMIT 1`, [req.params.slug]);
+    const rows = await sql2(`SELECT * FROM products WHERE slug = $1 LIMIT 1`, [req.params.slug]);
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Product not found" });
     }
@@ -488,7 +499,7 @@ router.post("/products", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = productSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO products (id, name, slug, description, price, compare_at_price, category_id, images, sizes, colors, in_stock, featured, sku, stock_quantity, weight, material, brand, tags, status, published, is_visible, published_at, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, now(), now(), now())`,
       [
@@ -515,7 +526,7 @@ router.post("/products", authenticate, requireAdmin, async (req, res) => {
         data.isVisible ?? true
       ]
     );
-    const product = await sql(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [id]);
+    const product = await sql2(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: fixNumericFields(product[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -544,11 +555,11 @@ router.put("/products/:id", authenticate, requireAdmin, async (req, res) => {
     }
     fields.push(`updated_at = now()`);
     values.push(req.params.id);
-    await sql(
+    await sql2(
       `UPDATE products SET ${fields.join(", ")} WHERE id = $${idx}`,
       values
     );
-    const updated = await sql(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [req.params.id]);
+    const updated = await sql2(`SELECT * FROM products WHERE id = $1 LIMIT 1`, [req.params.id]);
     return res.json({ success: true, data: fixNumericFields(updated[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -561,7 +572,7 @@ router.put("/products/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.delete("/products/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    await sql(`DELETE FROM products WHERE id = $1`, [req.params.id]);
+    await sql2(`DELETE FROM products WHERE id = $1`, [req.params.id]);
     return res.json({ success: true, message: "Product deleted" });
   } catch (err) {
     logger.error("Product delete error", { error: err.message });
@@ -571,7 +582,7 @@ router.delete("/products/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.get("/categories", cacheControl(300), async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM categories ORDER BY display_order ASC, name ASC`);
+    const rows = await sql2(`SELECT * FROM categories ORDER BY display_order ASC, name ASC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     logger.error("Categories fetch error", { error: err.message });
@@ -582,12 +593,12 @@ router.post("/categories", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = categorySchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO categories (id, name, slug, description, image_url, display_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, now(), now())`,
       [id, data.name, data.slug, data.description || null, data.imageUrl || null, data.displayOrder ?? 0]
     );
-    const category = await sql(`SELECT * FROM categories WHERE id = $1 LIMIT 1`, [id]);
+    const category = await sql2(`SELECT * FROM categories WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: category[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -603,9 +614,11 @@ router.put("/categories/:id", authenticate, requireAdmin, async (req, res) => {
     const fields = [];
     const values = [];
     let idx = 1;
+    const CATEGORY_UPDATE_COLUMNS = /* @__PURE__ */ new Set(["name", "slug", "description", "image_url", "display_order"]);
     for (const [key, value] of Object.entries(data)) {
       if (value !== void 0) {
         const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+        if (!CATEGORY_UPDATE_COLUMNS.has(dbKey)) continue;
         fields.push(`${dbKey} = $${idx++}`);
         values.push(value);
       }
@@ -615,8 +628,8 @@ router.put("/categories/:id", authenticate, requireAdmin, async (req, res) => {
     }
     fields.push(`updated_at = now()`);
     values.push(req.params.id);
-    await sql(`UPDATE categories SET ${fields.join(", ")} WHERE id = $${idx}`, values);
-    const updated = await sql(`SELECT * FROM categories WHERE id = $1 LIMIT 1`, [req.params.id]);
+    await sql2(`UPDATE categories SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const updated = await sql2(`SELECT * FROM categories WHERE id = $1 LIMIT 1`, [req.params.id]);
     return res.json({ success: true, data: updated[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -627,7 +640,7 @@ router.put("/categories/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.delete("/categories/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    await sql(`DELETE FROM categories WHERE id = $1`, [req.params.id]);
+    await sql2(`DELETE FROM categories WHERE id = $1`, [req.params.id]);
     return res.json({ success: true, message: "Category deleted" });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -637,7 +650,7 @@ router.post("/contact", contactLimiter, async (req, res) => {
   try {
     const data = contactSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO messages (id, name, email, subject, message, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, 'unread', now(), now())`,
       [id, data.name, data.email, data.subject, data.message]
@@ -653,7 +666,7 @@ router.post("/contact", contactLimiter, async (req, res) => {
 });
 router.get("/messages", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM messages ORDER BY created_at DESC`);
+    const rows = await sql2(`SELECT * FROM messages ORDER BY created_at DESC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -662,7 +675,7 @@ router.get("/messages", authenticate, requireAdmin, async (_req, res) => {
 router.put("/messages/:id/reply", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = messageReplySchema.parse(req.body);
-    await sql(
+    await sql2(
       `UPDATE messages SET admin_reply = $1, replied_at = now(), status = 'replied', updated_at = now()
        WHERE id = $2`,
       [data.adminReply, req.params.id]
@@ -678,7 +691,7 @@ router.put("/messages/:id/reply", authenticate, requireAdmin, async (req, res) =
 router.put("/messages/:id/status", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
-    await sql(`UPDATE messages SET status = $1, updated_at = now() WHERE id = $2`, [status, req.params.id]);
+    await sql2(`UPDATE messages SET status = $1, updated_at = now() WHERE id = $2`, [status, req.params.id]);
     return res.json({ success: true, message: "Status updated" });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -688,7 +701,7 @@ router.post("/design-requests", async (req, res) => {
   try {
     const data = designRequestSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO custom_design_requests (id, name, email, phone, shirt_color, shirt_size, design_image_url, design_data, notes, quantity, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', now(), now())`,
       [
@@ -715,7 +728,7 @@ router.post("/design-requests", async (req, res) => {
 });
 router.get("/design-requests", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM custom_design_requests ORDER BY created_at DESC`);
+    const rows = await sql2(`SELECT * FROM custom_design_requests ORDER BY created_at DESC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -724,7 +737,7 @@ router.get("/design-requests", authenticate, requireAdmin, async (_req, res) => 
 router.put("/design-requests/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, adminNotes, quotedPrice } = req.body;
-    await sql(
+    await sql2(
       `UPDATE custom_design_requests SET status = COALESCE($1, status), admin_notes = COALESCE($2, admin_notes), quoted_price = COALESCE($3, quoted_price), updated_at = now() WHERE id = $4`,
       [status || null, adminNotes || null, quotedPrice ? String(quotedPrice) : null, req.params.id]
     );
@@ -737,9 +750,9 @@ router.get("/orders", authenticate, async (req, res) => {
   try {
     let rows;
     if (req.userRole === "admin") {
-      rows = await sql(`SELECT * FROM orders ORDER BY created_at DESC`);
+      rows = await sql2(`SELECT * FROM orders ORDER BY created_at DESC`);
     } else {
-      rows = await sql(`SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`, [req.userId]);
+      rows = await sql2(`SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`, [req.userId]);
     }
     return res.json({ success: true, data: fixNumericFieldsArray(rows) });
   } catch (err) {
@@ -750,7 +763,7 @@ router.post("/orders", authenticate, async (req, res) => {
   try {
     const data = orderSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO orders (id, user_id, status, total, shipping_address, items, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, now(), now())`,
       [
@@ -762,7 +775,7 @@ router.post("/orders", authenticate, async (req, res) => {
         JSON.stringify(data.items || [])
       ]
     );
-    const order = await sql(`SELECT * FROM orders WHERE id = $1 LIMIT 1`, [id]);
+    const order = await sql2(`SELECT * FROM orders WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: fixNumericFields(order[0]) });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -774,7 +787,7 @@ router.post("/orders", authenticate, async (req, res) => {
 router.put("/orders/:id/status", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = orderStatusSchema.parse(req.body);
-    await sql(`UPDATE orders SET status = $1, updated_at = now() WHERE id = $2`, [data.status, req.params.id]);
+    await sql2(`UPDATE orders SET status = $1, updated_at = now() WHERE id = $2`, [data.status, req.params.id]);
     return res.json({ success: true, message: "Order status updated" });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -788,9 +801,9 @@ router.get("/blog", cacheControl(120), async (req, res) => {
     const publishedOnly = req.query.published !== "false";
     let rows;
     if (publishedOnly) {
-      rows = await sql(`SELECT * FROM blog_posts WHERE published = true ORDER BY created_at DESC`);
+      rows = await sql2(`SELECT * FROM blog_posts WHERE published = true ORDER BY created_at DESC`);
     } else {
-      rows = await sql(`SELECT * FROM blog_posts ORDER BY created_at DESC`);
+      rows = await sql2(`SELECT * FROM blog_posts ORDER BY created_at DESC`);
     }
     return res.json({ success: true, data: rows });
   } catch (err) {
@@ -799,7 +812,7 @@ router.get("/blog", cacheControl(120), async (req, res) => {
 });
 router.get("/blog/:slug", async (req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM blog_posts WHERE slug = $1 LIMIT 1`, [req.params.slug]);
+    const rows = await sql2(`SELECT * FROM blog_posts WHERE slug = $1 LIMIT 1`, [req.params.slug]);
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Blog post not found" });
     }
@@ -812,7 +825,7 @@ router.post("/blog", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = blogPostSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO blog_posts (id, title, slug, excerpt, content, cover_image, published, author_name, tags, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())`,
       [
@@ -827,7 +840,7 @@ router.post("/blog", authenticate, requireAdmin, async (req, res) => {
         JSON.stringify(data.tags || [])
       ]
     );
-    const post = await sql(`SELECT * FROM blog_posts WHERE id = $1 LIMIT 1`, [id]);
+    const post = await sql2(`SELECT * FROM blog_posts WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: post[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -854,8 +867,8 @@ router.put("/blog/:id", authenticate, requireAdmin, async (req, res) => {
     }
     fields.push(`updated_at = now()`);
     values.push(req.params.id);
-    await sql(`UPDATE blog_posts SET ${fields.join(", ")} WHERE id = $${idx}`, values);
-    const updated = await sql(`SELECT * FROM blog_posts WHERE id = $1 LIMIT 1`, [req.params.id]);
+    await sql2(`UPDATE blog_posts SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const updated = await sql2(`SELECT * FROM blog_posts WHERE id = $1 LIMIT 1`, [req.params.id]);
     return res.json({ success: true, data: updated[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -866,7 +879,7 @@ router.put("/blog/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.delete("/blog/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    await sql(`DELETE FROM blog_posts WHERE id = $1`, [req.params.id]);
+    await sql2(`DELETE FROM blog_posts WHERE id = $1`, [req.params.id]);
     return res.json({ success: true, message: "Blog post deleted" });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -874,7 +887,7 @@ router.delete("/blog/:id", authenticate, requireAdmin, async (req, res) => {
 });
 router.get("/announcements", cacheControl(60), async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM announcements WHERE active = true ORDER BY display_order ASC, created_at DESC`);
+    const rows = await sql2(`SELECT * FROM announcements WHERE active = true ORDER BY display_order ASC, created_at DESC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -884,12 +897,12 @@ router.post("/announcements", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = announcementSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO announcements (id, title, message, link_text, link_url, active, display_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now())`,
       [id, data.title, data.message, data.linkText || null, data.linkUrl || null, data.active ?? true, data.displayOrder ?? 0]
     );
-    const ann = await sql(`SELECT * FROM announcements WHERE id = $1 LIMIT 1`, [id]);
+    const ann = await sql2(`SELECT * FROM announcements WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: ann[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -901,7 +914,7 @@ router.post("/announcements", authenticate, requireAdmin, async (req, res) => {
 router.put("/announcements/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const { title, message, linkText, linkUrl, active, displayOrder } = req.body;
-    await sql(
+    await sql2(
       `UPDATE announcements SET title = COALESCE($1, title), message = COALESCE($2, message), link_text = COALESCE($3, link_text), link_url = COALESCE($4, link_url), active = COALESCE($5, active), display_order = COALESCE($6, display_order), updated_at = now() WHERE id = $7`,
       [title || null, message || null, linkText || null, linkUrl || null, active !== void 0 ? active : null, displayOrder !== void 0 ? displayOrder : null, req.params.id]
     );
@@ -912,7 +925,7 @@ router.put("/announcements/:id", authenticate, requireAdmin, async (req, res) =>
 });
 router.delete("/announcements/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    await sql(`DELETE FROM announcements WHERE id = $1`, [req.params.id]);
+    await sql2(`DELETE FROM announcements WHERE id = $1`, [req.params.id]);
     return res.json({ success: true, message: "Announcement deleted" });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -920,7 +933,7 @@ router.delete("/announcements/:id", authenticate, requireAdmin, async (req, res)
 });
 router.get("/discount-codes", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM discount_codes ORDER BY created_at DESC`);
+    const rows = await sql2(`SELECT * FROM discount_codes ORDER BY created_at DESC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -930,12 +943,12 @@ router.post("/discount-codes", authenticate, requireAdmin, async (req, res) => {
   try {
     const data = discountCodeSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO discount_codes (id, code, discount_percent, game_name, expires_at, created_at)
        VALUES ($1, $2, $3, $4, $5, now())`,
       [id, data.code.toUpperCase(), data.discountPercent, data.gameName, data.expiresAt ? new Date(data.expiresAt) : null]
     );
-    const code = await sql(`SELECT * FROM discount_codes WHERE id = $1 LIMIT 1`, [id]);
+    const code = await sql2(`SELECT * FROM discount_codes WHERE id = $1 LIMIT 1`, [id]);
     return res.status(201).json({ success: true, data: code[0] });
   } catch (err) {
     if (err.name === "ZodError") {
@@ -950,7 +963,7 @@ router.post("/discount-codes/validate", async (req, res) => {
     if (!code) {
       return res.status(400).json({ success: false, error: "Code is required" });
     }
-    const rows = await sql(
+    const rows = await sql2(
       `SELECT * FROM discount_codes WHERE code = $1 AND used = false AND expires_at > now() LIMIT 1`,
       [code.toUpperCase()]
     );
@@ -966,7 +979,7 @@ router.post("/page-views", async (req, res) => {
   try {
     const data = pageViewSchema.parse(req.body);
     const id = uuidv42();
-    await sql(
+    await sql2(
       `INSERT INTO page_views (id, page, visitor_id, session_duration, created_at) VALUES ($1, $2, $3, $4, now())`,
       [id, data.page, data.visitorId || null, data.sessionDuration ?? 0]
     );
@@ -980,7 +993,7 @@ router.post("/page-views", async (req, res) => {
 });
 router.get("/page-views/stats", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`
+    const rows = await sql2(`
       SELECT page, COUNT(*) as views, COUNT(DISTINCT visitor_id) as unique_visitors
       FROM page_views
       GROUP BY page
@@ -993,7 +1006,7 @@ router.get("/page-views/stats", authenticate, requireAdmin, async (_req, res) =>
 });
 router.get("/settings", cacheControl(60), async (_req, res) => {
   try {
-    const rows = await sql(`SELECT key, value, updated_at FROM site_settings`);
+    const rows = await sql2(`SELECT key, value, updated_at FROM site_settings`);
     const settings = {};
     for (const row of rows) {
       if (!row.key.startsWith("auth_")) {
@@ -1009,11 +1022,11 @@ router.put("/settings/:key", authenticate, requireAdmin, async (req, res) => {
   try {
     const { value } = req.body;
     const { key } = req.params;
-    const existing = await sql(`SELECT id FROM site_settings WHERE key = $1 LIMIT 1`, [key]);
+    const existing = await sql2(`SELECT id FROM site_settings WHERE key = $1 LIMIT 1`, [key]);
     if (existing.length > 0) {
-      await sql(`UPDATE site_settings SET value = $1, updated_at = now() WHERE key = $2`, [JSON.stringify(value), key]);
+      await sql2(`UPDATE site_settings SET value = $1, updated_at = now() WHERE key = $2`, [JSON.stringify(value), key]);
     } else {
-      await sql(`INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`, [uuidv42(), key, JSON.stringify(value)]);
+      await sql2(`INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`, [uuidv42(), key, JSON.stringify(value)]);
     }
     return res.json({ success: true, message: "Setting saved" });
   } catch (err) {
@@ -1023,14 +1036,14 @@ router.put("/settings/:key", authenticate, requireAdmin, async (req, res) => {
 router.post("/subscribe", subscribeLimiter, async (req, res) => {
   try {
     const data = subscribeSchema.parse(req.body);
-    const existing = await sql(
+    const existing = await sql2(
       `SELECT id FROM site_settings WHERE key = $1 LIMIT 1`,
       [`subscriber_${data.email}`]
     );
     if (existing.length > 0) {
       return res.status(409).json({ success: false, error: "This email is already subscribed" });
     }
-    await sql(
+    await sql2(
       `INSERT INTO site_settings (id, key, value, updated_at) VALUES ($1, $2, $3, now())`,
       [uuidv42(), `subscriber_${data.email}`, JSON.stringify({ email: data.email, subscribedAt: (/* @__PURE__ */ new Date()).toISOString() })]
     );
@@ -1044,7 +1057,7 @@ router.post("/subscribe", subscribeLimiter, async (req, res) => {
 });
 router.get("/subscribers", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`SELECT value FROM site_settings WHERE key LIKE 'subscriber_%' ORDER BY updated_at DESC`);
+    const rows = await sql2(`SELECT value FROM site_settings WHERE key LIKE 'subscriber_%' ORDER BY updated_at DESC`);
     const subscribers = rows.map((r) => r.value);
     return res.json({ success: true, data: subscribers });
   } catch (err) {
@@ -1053,7 +1066,7 @@ router.get("/subscribers", authenticate, requireAdmin, async (_req, res) => {
 });
 router.get("/profiles", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql(`SELECT * FROM profiles ORDER BY created_at DESC`);
+    const rows = await sql2(`SELECT * FROM profiles ORDER BY created_at DESC`);
     return res.json({ success: true, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal server error" });
@@ -1065,11 +1078,11 @@ router.put("/users/:userId/role", authenticate, requireAdmin, async (req, res) =
     if (!["admin", "editor", "user"].includes(role)) {
       return res.status(400).json({ success: false, error: "Invalid role" });
     }
-    const existing = await sql(`SELECT id FROM user_roles WHERE user_id = $1 LIMIT 1`, [req.params.userId]);
+    const existing = await sql2(`SELECT id FROM user_roles WHERE user_id = $1 LIMIT 1`, [req.params.userId]);
     if (existing.length > 0) {
-      await sql(`UPDATE user_roles SET role = $1 WHERE user_id = $2`, [role, req.params.userId]);
+      await sql2(`UPDATE user_roles SET role = $1 WHERE user_id = $2`, [role, req.params.userId]);
     } else {
-      await sql(`INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`, [uuidv42(), req.params.userId, role]);
+      await sql2(`INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, $3)`, [uuidv42(), req.params.userId, role]);
     }
     return res.json({ success: true, message: "Role updated" });
   } catch (err) {
@@ -1091,15 +1104,27 @@ router.post("/functions/game-coupon", async (req, res) => {
 });
 router.get("/storage/config", async (_req, res) => {
   try {
-    const settings = await sql("SELECT value FROM site_settings WHERE key = $1", ["storage_config"]);
-    return res.json({ success: true, data: settings.length ? settings[0].value : null });
+    const settings = await sql2("SELECT value FROM site_settings WHERE key = $1", ["storage_config"]);
+    const raw = settings.length ? settings[0].value : null;
+    const SECRET_KEYS = /secret|password|api[_-]?key|token|credential/i;
+    const sanitize = (cfg) => {
+      if (!cfg || typeof cfg !== "object") return cfg;
+      if (Array.isArray(cfg)) return cfg.map(sanitize);
+      const out = {};
+      for (const k of Object.keys(cfg)) {
+        if (SECRET_KEYS.test(k)) continue;
+        out[k] = sanitize(cfg[k]);
+      }
+      return out;
+    };
+    return res.json({ success: true, data: sanitize(raw) });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Failed to get storage config" });
   }
 });
 router.post("/upload", async (req, res) => {
   try {
-    const settings = await sql("SELECT value FROM site_settings WHERE key = $1", ["storage_config"]);
+    const settings = await sql2("SELECT value FROM site_settings WHERE key = $1", ["storage_config"]);
     let config = settings.length ? settings[0].value : null;
     let provider = config?.active_provider || "local";
     let imageBuffer = null;
@@ -1113,13 +1138,17 @@ router.post("/upload", async (req, res) => {
         imageBuffer = Buffer.from(req.body.image, "base64");
       }
     } else if (req.body?.url) {
-      const resp = await fetch(req.body.url);
-      const arrayBuffer = await resp.arrayBuffer();
-      imageBuffer = Buffer.from(arrayBuffer);
-      mimeType = resp.headers.get("content-type") || "image/jpeg";
+      imageBuffer = null;
     }
     if (!imageBuffer) {
       return res.status(400).json({ success: false, error: "No image data provided" });
+    }
+    if (imageBuffer.length > 8 * 1024 * 1024) {
+      return res.status(413).json({ success: false, error: "Image too large (max 8 MB)" });
+    }
+    const SAFE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    if (!SAFE_IMAGE_TYPES.includes(String(mimeType || "").toLowerCase())) {
+      return res.status(415).json({ success: false, error: "Unsupported image type" });
     }
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     let publicUrl = "";
@@ -1172,7 +1201,7 @@ router.post("/upload", async (req, res) => {
 router.post("/payments/initialize", async (req, res) => {
   try {
     const { amount, currency, email, metadata } = req.body;
-    const settings = await sql("SELECT value FROM site_settings WHERE key = $1", ["payment_gateways"]);
+    const settings = await sql2("SELECT value FROM site_settings WHERE key = $1", ["payment_gateways"]);
     if (!settings.length) return res.status(400).json({ success: false, error: "No payment gateway configured" });
     const config = settings[0].value;
     const activeGateway = config.active_gateway;
@@ -1238,7 +1267,7 @@ router.post("/payments/verify", async (req, res) => {
 });
 router.get("/payments/gateway", async (_req, res) => {
   try {
-    const settings = await sql("SELECT value FROM site_settings WHERE key = $1", ["payment_gateways"]);
+    const settings = await sql2("SELECT value FROM site_settings WHERE key = $1", ["payment_gateways"]);
     if (!settings.length) return res.json({ success: true, data: null });
     const config = settings[0].value;
     const active = config.active_gateway;
@@ -1257,7 +1286,7 @@ var routes_default = router;
 // server/subscription-routes.ts
 import { Router as Router2 } from "express";
 import { randomUUID as randomUUID2 } from "crypto";
-import { neon as neon2, neonConfig as neonConfig2 } from "@neondatabase/serverless";
+import { neon as neon3, neonConfig as neonConfig2 } from "@neondatabase/serverless";
 
 // server/subscription-validators.ts
 import { z as z2 } from "zod";
@@ -1310,11 +1339,11 @@ var shipOrderSchema = z2.object({
 neonConfig2.fetchConnectionCache = true;
 var uuidv43 = randomUUID2;
 var _sql2 = null;
-async function sql2(query, params) {
+async function sql3(query, params) {
   if (!_sql2) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL is not set");
-    _sql2 = neon2(url);
+    _sql2 = neon3(url);
   }
   return await _sql2.query(query, params || []);
 }
@@ -1363,7 +1392,7 @@ function fixMany(rows) {
 }
 router2.get("/subscription-plans", cacheControl(300), async (_req, res) => {
   try {
-    const rows = await sql2("SELECT * FROM public.subscription_plans WHERE is_active = true ORDER BY display_order ASC");
+    const rows = await sql3("SELECT * FROM public.subscription_plans WHERE is_active = true ORDER BY display_order ASC");
     res.json({ success: true, data: fixMany(rows) });
   } catch (err) {
     logger.error("Failed to fetch plans", { error: err.message });
@@ -1372,7 +1401,7 @@ router2.get("/subscription-plans", cacheControl(300), async (_req, res) => {
 });
 router2.get("/subscription-plans/:slug", cacheControl(300), async (req, res) => {
   try {
-    const rows = await sql2("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
+    const rows = await sql3("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
     if (!rows[0]) return res.status(404).json({ success: false, error: "Plan not found" });
     res.json({ success: true, data: fixNumeric(rows[0]) });
   } catch (err) {
@@ -1386,19 +1415,19 @@ router2.post("/subscriptions", authenticate, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
     const userId = req.userId;
     const { planId, shippingAddress } = parsed.data;
-    const plans = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1 AND is_active = true", [planId]);
+    const plans = await sql3("SELECT * FROM public.subscription_plans WHERE id = $1 AND is_active = true", [planId]);
     if (!plans[0]) return res.status(404).json({ success: false, error: "Plan not found" });
-    const existing = await sql2(
+    const existing = await sql3(
       "SELECT id FROM public.subscriptions WHERE user_id = $1 AND status = 'active' LIMIT 1",
       [userId]
     );
     if (existing[0]) return res.status(409).json({ success: false, error: "You already have an active subscription" });
-    const quiz = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1 LIMIT 1", [userId]);
+    const quiz = await sql3("SELECT * FROM public.style_quizzes WHERE user_id = $1 LIMIT 1", [userId]);
     const now = /* @__PURE__ */ new Date();
     const nextMonth = new Date(now);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     const id = uuidv43();
-    await sql2(
+    await sql3(
       `INSERT INTO public.subscriptions (id, user_id, plan_id, status, shipping_address, style_preferences, current_period_start, current_period_end, next_billing_date)
        VALUES ($1, $2, $3, 'active', $4, $5, $6, $7, $8)`,
       [
@@ -1412,7 +1441,7 @@ router2.post("/subscriptions", authenticate, async (req, res) => {
         nextMonth.toISOString()
       ]
     );
-    const sub = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    const sub = await sql3("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
     res.status(201).json({ success: true, data: fixNumeric(sub[0]) });
   } catch (err) {
     logger.error("Failed to create subscription", { error: err.message });
@@ -1421,7 +1450,7 @@ router2.post("/subscriptions", authenticate, async (req, res) => {
 });
 router2.get("/subscriptions/mine", authenticate, async (req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT s.*, sp.name as plan_name, sp.slug as plan_slug, sp.price as plan_price, sp.features as plan_features
        FROM public.subscriptions s
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
@@ -1441,7 +1470,7 @@ router2.patch("/subscriptions/:id", authenticate, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
     const { id } = req.params;
     const userId = req.userId;
-    const existing = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    const existing = await sql3("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
     if (!existing[0]) return res.status(404).json({ success: false, error: "Subscription not found" });
     if (existing[0].user_id !== userId && req.userRole !== "admin") {
       return res.status(403).json({ success: false, error: "Forbidden" });
@@ -1468,8 +1497,8 @@ router2.patch("/subscriptions/:id", authenticate, async (req, res) => {
     fields.push(`updated_at = $${idx++}`);
     values.push((/* @__PURE__ */ new Date()).toISOString());
     values.push(id);
-    await sql2(`UPDATE public.subscriptions SET ${fields.join(", ")} WHERE id = $${idx}`, values);
-    const updated = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    await sql3(`UPDATE public.subscriptions SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const updated = await sql3("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
     res.json({ success: true, data: fixNumeric(updated[0]) });
   } catch (err) {
     logger.error("Failed to update subscription", { error: err.message });
@@ -1480,16 +1509,16 @@ router2.post("/subscriptions/:id/cancel", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId;
-    const existing = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    const existing = await sql3("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
     if (!existing[0]) return res.status(404).json({ success: false, error: "Subscription not found" });
     if (existing[0].user_id !== userId && req.userRole !== "admin") {
       return res.status(403).json({ success: false, error: "Forbidden" });
     }
-    await sql2(
+    await sql3(
       "UPDATE public.subscriptions SET status = 'cancelled', cancelled_at = $1, updated_at = $1 WHERE id = $2",
       [(/* @__PURE__ */ new Date()).toISOString(), id]
     );
-    const updated = await sql2("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
+    const updated = await sql3("SELECT * FROM public.subscriptions WHERE id = $1", [id]);
     res.json({ success: true, data: fixNumeric(updated[0]) });
   } catch (err) {
     logger.error("Failed to cancel subscription", { error: err.message });
@@ -1502,22 +1531,22 @@ router2.post("/style-quiz", authenticate, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
     const userId = req.userId;
     const data = parsed.data;
-    const existing = await sql2("SELECT id FROM public.style_quizzes WHERE user_id = $1", [userId]);
+    const existing = await sql3("SELECT id FROM public.style_quizzes WHERE user_id = $1", [userId]);
     if (existing[0]) {
-      await sql2(
+      await sql3(
         `UPDATE public.style_quizzes
          SET sizes = $1, preferred_colors = $2, preferred_styles = $3, occasions = $4, notes = $5, completed_at = $6, updated_at = $6
          WHERE user_id = $7`,
         [JSON.stringify(data.sizes || {}), data.preferredColors, data.preferredStyles, data.occasions, data.notes, (/* @__PURE__ */ new Date()).toISOString(), userId]
       );
     } else {
-      await sql2(
+      await sql3(
         `INSERT INTO public.style_quizzes (id, user_id, sizes, preferred_colors, preferred_styles, occasions, notes, completed_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [uuidv43(), userId, JSON.stringify(data.sizes || {}), data.preferredColors, data.preferredStyles, data.occasions, data.notes, (/* @__PURE__ */ new Date()).toISOString()]
       );
     }
-    const quiz = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1", [userId]);
+    const quiz = await sql3("SELECT * FROM public.style_quizzes WHERE user_id = $1", [userId]);
     res.json({ success: true, data: fixNumeric(quiz[0]) });
   } catch (err) {
     logger.error("Failed to save quiz", { error: err.message });
@@ -1526,7 +1555,7 @@ router2.post("/style-quiz", authenticate, async (req, res) => {
 });
 router2.get("/style-quiz/mine", authenticate, async (req, res) => {
   try {
-    const rows = await sql2("SELECT * FROM public.style_quizzes WHERE user_id = $1", [req.userId]);
+    const rows = await sql3("SELECT * FROM public.style_quizzes WHERE user_id = $1", [req.userId]);
     res.json({ success: true, data: fixMany(rows) });
   } catch (err) {
     logger.error("Failed to fetch quiz", { error: err.message });
@@ -1535,7 +1564,7 @@ router2.get("/style-quiz/mine", authenticate, async (req, res) => {
 });
 router2.get("/subscription-orders/mine", authenticate, async (req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT so.*, sp.name as plan_name
        FROM public.subscription_orders so
        JOIN public.subscriptions s ON so.subscription_id = s.id
@@ -1552,7 +1581,7 @@ router2.get("/subscription-orders/mine", authenticate, async (req, res) => {
 });
 router2.get("/subscription-orders/:id", authenticate, async (req, res) => {
   try {
-    const rows = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [req.params.id]);
+    const rows = await sql3("SELECT * FROM public.subscription_orders WHERE id = $1", [req.params.id]);
     if (!rows[0]) return res.status(404).json({ success: false, error: "Order not found" });
     if (rows[0].user_id !== req.userId && req.userRole !== "admin") {
       return res.status(403).json({ success: false, error: "Forbidden" });
@@ -1565,7 +1594,7 @@ router2.get("/subscription-orders/:id", authenticate, async (req, res) => {
 });
 router2.get("/subscriptions", authenticate, async (req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT s.*, sp.name as plan_name, sp.price as plan_price, sp.features as plan_features
        FROM public.subscriptions s
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
@@ -1581,7 +1610,7 @@ router2.get("/subscriptions", authenticate, async (req, res) => {
 });
 router2.get("/subscription-orders", authenticate, async (req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT so.*, sp.name as plan_name
        FROM public.subscription_orders so
        JOIN public.subscriptions s ON so.subscription_id = s.id
@@ -1602,11 +1631,11 @@ router2.post("/admin/subscription-orders/:id/ship", authenticate, requireAdmin, 
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
     const { id } = req.params;
     const { trackingNumber } = parsed.data;
-    await sql2(
+    await sql3(
       "UPDATE public.subscription_orders SET status = 'shipped', tracking_number = $1, shipped_at = $2, updated_at = $2 WHERE id = $3",
       [trackingNumber || null, (/* @__PURE__ */ new Date()).toISOString(), id]
     );
-    const updated = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
+    const updated = await sql3("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
     res.json({ success: true, data: fixNumeric(updated[0]) });
   } catch (err) {
     logger.error("Failed to ship order", { error: err.message });
@@ -1615,7 +1644,7 @@ router2.post("/admin/subscription-orders/:id/ship", authenticate, requireAdmin, 
 });
 router2.get("/admin/subscriptions", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT s.*, sp.name as plan_name, sp.price as plan_price, p.display_name, p.email
        FROM public.subscriptions s
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
@@ -1631,13 +1660,13 @@ router2.get("/admin/subscriptions", authenticate, requireAdmin, async (_req, res
 router2.get("/admin/subscription-stats", authenticate, requireAdmin, async (_req, res) => {
   try {
     const [totalSubs, activeSubs, planBreakdown, revenue] = await Promise.all([
-      sql2("SELECT COUNT(*)::int as count FROM public.subscriptions"),
-      sql2("SELECT COUNT(*)::int as count FROM public.subscriptions WHERE status = 'active'"),
-      sql2(`SELECT sp.name, COUNT(s.id)::int as count
+      sql3("SELECT COUNT(*)::int as count FROM public.subscriptions"),
+      sql3("SELECT COUNT(*)::int as count FROM public.subscriptions WHERE status = 'active'"),
+      sql3(`SELECT sp.name, COUNT(s.id)::int as count
            FROM public.subscription_plans sp
            LEFT JOIN public.subscriptions s ON sp.id = s.plan_id AND s.status = 'active'
            GROUP BY sp.name ORDER BY sp.display_order`),
-      sql2("SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.subscription_payments WHERE status = 'succeeded'")
+      sql3("SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.subscription_payments WHERE status = 'succeeded'")
     ]);
     res.json({
       success: true,
@@ -1655,11 +1684,11 @@ router2.get("/admin/subscription-stats", authenticate, requireAdmin, async (_req
 });
 router2.get("/subscription-plans/:slug/curate", cacheControl(60), async (req, res) => {
   try {
-    const plans = await sql2("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
+    const plans = await sql3("SELECT * FROM public.subscription_plans WHERE slug = $1 AND is_active = true", [req.params.slug]);
     if (!plans[0]) return res.status(404).json({ success: false, error: "Plan not found" });
     const plan = plans[0];
     const maxItems = plan.item_count_max || 5;
-    const products = await sql2(
+    const products = await sql3(
       `SELECT p.*, c.name as category_name
        FROM public.products p
        LEFT JOIN public.categories c ON p.category_id = c.id
@@ -1697,7 +1726,7 @@ router2.post("/cron/billing", async (req, res) => {
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
   try {
-    const dueSubs = await sql2(
+    const dueSubs = await sql3(
       `SELECT s.*, sp.price, sp.name as plan_name
        FROM public.subscriptions s
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
@@ -1707,19 +1736,19 @@ router2.post("/cron/billing", async (req, res) => {
     let failed = 0;
     for (const sub of dueSubs) {
       try {
-        await sql2(
+        await sql3(
           `INSERT INTO public.subscription_payments (id, subscription_id, user_id, amount, currency, payment_method, status, transaction_id, paid_at, created_at)
            VALUES ($1, $2, $3, $4, 'GHS', 'recurring', 'succeeded', $5, now(), now())`,
           [uuidv43(), sub.id, sub.user_id, sub.price, `txn_recurring_${Date.now()}_${sub.id.slice(0, 8)}`]
         );
-        await sql2(
+        await sql3(
           `INSERT INTO public.subscription_orders (id, subscription_id, user_id, status, items, amount, shipping_address, created_at, updated_at)
            VALUES ($1, $2, $3, 'pending', '[]', $4, $5, now(), now())`,
           [uuidv43(), sub.id, sub.user_id, sub.price, sub.shipping_address || "{}"]
         );
         const nextDate = new Date(sub.next_billing_date);
         nextDate.setMonth(nextDate.getMonth() + 1);
-        await sql2(
+        await sql3(
           "UPDATE public.subscriptions SET next_billing_date = $1, current_period_end = $1, updated_at = now() WHERE id = $2",
           [nextDate.toISOString(), sub.id]
         );
@@ -1741,12 +1770,12 @@ router2.post("/admin/subscription-plans", authenticate, requireAdmin, async (req
     if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors[0].message });
     const d = parsed.data;
     const id = uuidv43();
-    await sql2(
+    await sql3(
       `INSERT INTO public.subscription_plans (id, name, slug, description, price, interval, features, item_count_min, item_count_max, is_active, display_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now())`,
       [id, d.name, d.slug, d.description || null, d.price, d.interval, JSON.stringify(d.features || []), d.itemCountMin, d.itemCountMax, d.isActive, d.displayOrder]
     );
-    const plan = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
+    const plan = await sql3("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
     res.status(201).json({ success: true, data: fixNumeric(plan[0]) });
   } catch (err) {
     logger.error("Failed to create plan", { error: err.message });
@@ -1803,8 +1832,8 @@ router2.put("/admin/subscription-plans/:id", authenticate, requireAdmin, async (
     fields.push(`updated_at = $${idx++}`);
     values.push((/* @__PURE__ */ new Date()).toISOString());
     values.push(id);
-    await sql2(`UPDATE public.subscription_plans SET ${fields.join(", ")} WHERE id = $${idx}`, values);
-    const plan = await sql2("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
+    await sql3(`UPDATE public.subscription_plans SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const plan = await sql3("SELECT * FROM public.subscription_plans WHERE id = $1", [id]);
     res.json({ success: true, data: fixNumeric(plan[0]) });
   } catch (err) {
     logger.error("Failed to update plan", { error: err.message });
@@ -1813,7 +1842,7 @@ router2.put("/admin/subscription-plans/:id", authenticate, requireAdmin, async (
 });
 router2.delete("/admin/subscription-plans/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    await sql2("UPDATE public.subscription_plans SET is_active = false, updated_at = now() WHERE id = $1", [req.params.id]);
+    await sql3("UPDATE public.subscription_plans SET is_active = false, updated_at = now() WHERE id = $1", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     logger.error("Failed to deactivate plan", { error: err.message });
@@ -1822,7 +1851,7 @@ router2.delete("/admin/subscription-plans/:id", authenticate, requireAdmin, asyn
 });
 router2.get("/admin/subscription-orders", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT so.*, sp.name as plan_name, p.display_name, p.email
        FROM public.subscription_orders so
        JOIN public.subscriptions s ON so.subscription_id = s.id
@@ -1869,8 +1898,8 @@ router2.put("/admin/subscription-orders/:id", authenticate, requireAdmin, async 
     fields.push(`updated_at = $${idx++}`);
     values.push((/* @__PURE__ */ new Date()).toISOString());
     values.push(id);
-    await sql2(`UPDATE public.subscription_orders SET ${fields.join(", ")} WHERE id = $${idx}`, values);
-    const order = await sql2("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
+    await sql3(`UPDATE public.subscription_orders SET ${fields.join(", ")} WHERE id = $${idx}`, values);
+    const order = await sql3("SELECT * FROM public.subscription_orders WHERE id = $1", [id]);
     res.json({ success: true, data: fixNumeric(order[0]) });
   } catch (err) {
     logger.error("Failed to update order", { error: err.message });
@@ -1879,7 +1908,7 @@ router2.put("/admin/subscription-orders/:id", authenticate, requireAdmin, async 
 });
 router2.get("/admin/style-quizzes", authenticate, requireAdmin, async (_req, res) => {
   try {
-    const rows = await sql2(
+    const rows = await sql3(
       `SELECT sq.*, p.display_name, p.email
        FROM public.style_quizzes sq
        LEFT JOIN public.profiles p ON sq.user_id = p.user_id
@@ -1895,20 +1924,20 @@ var subscription_routes_default = router2;
 
 // server/wishlist-notification-routes.ts
 import { Router as Router3 } from "express";
-import { neon as neon3 } from "@neondatabase/serverless";
+import { neon as neon4 } from "@neondatabase/serverless";
 var _sql3 = null;
-async function sql3(query, params) {
+async function sql4(query, params) {
   if (!_sql3) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL is not set");
-    _sql3 = neon3(url);
+    _sql3 = neon4(url);
   }
   return await _sql3.query(query, params || []);
 }
 var router3 = Router3();
 router3.get("/wishlist", authenticate, async (req, res) => {
   try {
-    const rows = await sql3(
+    const rows = await sql4(
       `SELECT w.*, p.name, p.slug, p.price, p.images, p.tier, p.sizes, p.colors, p.brand, p.in_stock
        FROM public.wishlists w
        JOIN public.products p ON w.product_id = p.id
@@ -1932,10 +1961,10 @@ router3.post("/wishlist", authenticate, async (req, res) => {
   try {
     const { productId } = req.body;
     if (!productId) return res.status(400).json({ success: false, error: "Product ID required" });
-    const existing = await sql3("SELECT id FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, productId]);
+    const existing = await sql4("SELECT id FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, productId]);
     if (existing[0]) return res.status(409).json({ success: false, error: "Already in wishlist" });
     const id = uuidv4();
-    await sql3(
+    await sql4(
       "INSERT INTO public.wishlists (id, user_id, product_id, created_at) VALUES ($1, $2, $3, now())",
       [id, req.userId, productId]
     );
@@ -1947,7 +1976,7 @@ router3.post("/wishlist", authenticate, async (req, res) => {
 });
 router3.delete("/wishlist/:productId", authenticate, async (req, res) => {
   try {
-    await sql3("DELETE FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, req.params.productId]);
+    await sql4("DELETE FROM public.wishlists WHERE user_id = $1 AND product_id = $2", [req.userId, req.params.productId]);
     res.json({ success: true });
   } catch (err) {
     logger.error("Failed to remove from wishlist", { error: err.message });
@@ -1956,7 +1985,7 @@ router3.delete("/wishlist/:productId", authenticate, async (req, res) => {
 });
 router3.get("/notifications", authenticate, async (req, res) => {
   try {
-    const rows = await sql3(
+    const rows = await sql4(
       "SELECT * FROM public.notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50",
       [req.userId]
     );
@@ -1968,7 +1997,7 @@ router3.get("/notifications", authenticate, async (req, res) => {
 });
 router3.get("/notifications/unread-count", authenticate, async (req, res) => {
   try {
-    const rows = await sql3(
+    const rows = await sql4(
       "SELECT COUNT(*)::int as count FROM public.notifications WHERE user_id = $1 AND read = false",
       [req.userId]
     );
@@ -1980,7 +2009,7 @@ router3.get("/notifications/unread-count", authenticate, async (req, res) => {
 });
 router3.put("/notifications/:id/read", authenticate, async (req, res) => {
   try {
-    await sql3("UPDATE public.notifications SET read = true WHERE id = $1 AND user_id = $2", [req.params.id, req.userId]);
+    await sql4("UPDATE public.notifications SET read = true WHERE id = $1 AND user_id = $2", [req.params.id, req.userId]);
     res.json({ success: true });
   } catch (err) {
     logger.error("Failed to mark notification read", { error: err.message });
@@ -1989,7 +2018,7 @@ router3.put("/notifications/:id/read", authenticate, async (req, res) => {
 });
 router3.put("/notifications/read-all", authenticate, async (req, res) => {
   try {
-    await sql3("UPDATE public.notifications SET read = true WHERE user_id = $1 AND read = false", [req.userId]);
+    await sql4("UPDATE public.notifications SET read = true WHERE user_id = $1 AND read = false", [req.userId]);
     res.json({ success: true });
   } catch (err) {
     logger.error("Failed to mark all read", { error: err.message });
@@ -1998,7 +2027,7 @@ router3.put("/notifications/read-all", authenticate, async (req, res) => {
 });
 async function createNotification(userId, type, title, message, data) {
   try {
-    await sql3(
+    await sql4(
       "INSERT INTO public.notifications (id, user_id, type, title, message, data, created_at) VALUES ($1, $2, $3, $4, $5, $6, now())",
       [uuidv4(), userId, type, title, message, data ? JSON.stringify(data) : null]
     );
@@ -2011,7 +2040,7 @@ router3.get("/monthly-box/current", authenticate, async (req, res) => {
     const now = /* @__PURE__ */ new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-    const rows = await sql3(
+    const rows = await sql4(
       `SELECT mb.*, sp.name as plan_name, sp.price as plan_price, sp.item_count_min, sp.item_count_max
        FROM public.monthly_boxes mb
        JOIN public.subscriptions s ON mb.subscription_id = s.id
@@ -2025,7 +2054,7 @@ router3.get("/monthly-box/current", authenticate, async (req, res) => {
       box.items = typeof box.items === "string" ? JSON.parse(box.items) : box.items;
       return res.json({ success: true, data: box });
     }
-    const subs = await sql3(
+    const subs = await sql4(
       `SELECT s.*, sp.name as plan_name, sp.price as plan_price, sp.item_count_min, sp.item_count_max
        FROM public.subscriptions s
        JOIN public.subscription_plans sp ON s.plan_id = sp.id
@@ -2037,7 +2066,7 @@ router3.get("/monthly-box/current", authenticate, async (req, res) => {
     }
     const sub = subs[0];
     const boxId = uuidv4();
-    await sql3(
+    await sql4(
       `INSERT INTO public.monthly_boxes (id, subscription_id, user_id, month, items, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, '[]', 'building', now(), now())`,
       [boxId, sub.id, req.userId, now.toISOString()]
@@ -2065,7 +2094,7 @@ router3.put("/monthly-box/:id", authenticate, async (req, res) => {
   try {
     const { items } = req.body;
     if (!Array.isArray(items)) return res.status(400).json({ success: false, error: "Items must be an array" });
-    await sql3(
+    await sql4(
       "UPDATE public.monthly_boxes SET items = $1, updated_at = now() WHERE id = $2 AND user_id = $3",
       [JSON.stringify(items), req.params.id, req.userId]
     );
@@ -2077,7 +2106,7 @@ router3.put("/monthly-box/:id", authenticate, async (req, res) => {
 });
 router3.post("/monthly-box/:id/confirm", authenticate, async (req, res) => {
   try {
-    await sql3(
+    await sql4(
       "UPDATE public.monthly_boxes SET status = 'confirmed', updated_at = now() WHERE id = $1 AND user_id = $2",
       [req.params.id, req.userId]
     );
@@ -2107,7 +2136,7 @@ router3.post("/admin/notifications/broadcast", async (req, res) => {
     if (!title || !message) {
       return res.status(400).json({ success: false, error: "title and message required" });
     }
-    const subs = await sql3("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
+    const subs = await sql4("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
     let sent = 0;
     for (const sub of subs) {
       await createNotification(sub.user_id, type || "announcement", title, message);
@@ -2129,7 +2158,7 @@ router3.post("/notifications", authenticate, async (req, res) => {
       await createNotification(target_user_id, type || "admin", title, message);
       return res.json({ success: true });
     }
-    const subs = await sql3("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
+    const subs = await sql4("SELECT DISTINCT user_id FROM public.subscriptions WHERE status = 'active'");
     let sent = 0;
     for (const sub of subs) {
       await createNotification(sub.user_id, type || "announcement", title, message);
@@ -2147,7 +2176,7 @@ router3.post("/notifications", authenticate, async (req, res) => {
 });
 router3.get("/monthly-box", authenticate, async (req, res) => {
   try {
-    const rows = await sql3(
+    const rows = await sql4(
       `SELECT mb.*, u.email as user_email
        FROM public.monthly_boxes mb
        LEFT JOIN public.profiles u ON mb.user_id = u.id

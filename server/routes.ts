@@ -507,9 +507,11 @@ router.put('/categories/:id', authenticate, requireAdmin, async (req: AuthReques
     const values: any[] = [];
     let idx = 1;
 
+    const CATEGORY_UPDATE_COLUMNS = new Set(['name', 'slug', 'description', 'image_url', 'display_order']);
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
         const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        if (!CATEGORY_UPDATE_COLUMNS.has(dbKey)) continue;
         fields.push(`${dbKey} = $${idx++}`);
         values.push(value);
       }
@@ -1129,7 +1131,20 @@ router.post('/functions/game-coupon', async (req, res: Response) => {
 router.get('/storage/config', async (_req, res) => {
   try {
     const settings = await sql('SELECT value FROM site_settings WHERE key = $1', ['storage_config']);
-    return res.json({ success: true, data: settings.length ? settings[0].value : null });
+    const raw = settings.length ? settings[0].value : null;
+    // Never leak credential fields through the public endpoint
+    const SECRET_KEYS = /secret|password|api[_-]?key|token|credential/i;
+    const sanitize = (cfg: any): any => {
+      if (!cfg || typeof cfg !== 'object') return cfg;
+      if (Array.isArray(cfg)) return cfg.map(sanitize);
+      const out: any = {};
+      for (const k of Object.keys(cfg)) {
+        if (SECRET_KEYS.test(k)) continue;
+        out[k] = sanitize(cfg[k]);
+      }
+      return out;
+    };
+    return res.json({ success: true, data: sanitize(raw) });
   } catch (err) {
     return res.status(500).json({ success: false, error: 'Failed to get storage config' });
   }
@@ -1157,15 +1172,22 @@ router.post('/upload', async (req, res) => {
         imageBuffer = Buffer.from(req.body.image, 'base64');
       }
     } else if (req.body?.url) {
-      // URL to download and re-upload
-      const resp = await fetch(req.body.url);
-      const arrayBuffer = await resp.arrayBuffer();
-      imageBuffer = Buffer.from(arrayBuffer);
-      mimeType = resp.headers.get('content-type') || 'image/jpeg';
+      // URL-import mode removed: a public endpoint must not fetch arbitrary
+      // URLs server-side (SSRF). Base64 uploads only, with hard size/type caps.
+      imageBuffer = null;
     }
     
     if (!imageBuffer) {
       return res.status(400).json({ success: false, error: 'No image data provided' });
+    }
+
+    // Size cap (8 MB) + basic image type whitelist
+    if (imageBuffer.length > 8 * 1024 * 1024) {
+      return res.status(413).json({ success: false, error: 'Image too large (max 8 MB)' });
+    }
+    const SAFE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+    if (!SAFE_IMAGE_TYPES.includes(String(mimeType || '').toLowerCase())) {
+      return res.status(415).json({ success: false, error: 'Unsupported image type' });
     }
     
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
