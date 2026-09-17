@@ -27,7 +27,7 @@ export const CURRENCIES: Currency[] = [
 
 /* Static fallback: units per 1 USD (refreshed from the API when online) */
 export const FALLBACK_RATES: Record<string, number> = {
-  USD: 1, EUR: 0.84, GBP: 0.75, GHS: 15.40, NGN: 1540, CAD: 1.36, AUD: 1.48, ZAR: 17.70, JPY: 141,
+  USD: 1, EUR: 0.87, GBP: 0.74, GHS: 11.45, NGN: 1328, CAD: 1.40, AUD: 1.41, ZAR: 16.32, JPY: 155.6,
 };
 
 const RATES_URL = "https://open.er-api.com/v6/latest/USD";
