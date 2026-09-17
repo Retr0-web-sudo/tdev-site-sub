@@ -71,9 +71,10 @@ const AdminLayout = () => {
       <nav className="border-b border-border bg-[hsl(25,15%,5%)]">
         <div className="px-6 md:px-10 flex items-center justify-between h-14">
           <div className="flex items-center gap-4">
-            <a href="/" className="font-display text-xl font-light tracking-[0.15em]">TDEV</a>
-            <span className="text-border">|</span>
-            <span className="font-body text-sm tracking-wider">Admin Panel</span>
+            <a href="/" className="flex items-center gap-3 group" aria-label="TDEV - Tenue de Ville home">
+              <img src="/logo.png" alt="TDEV | Tenue de Ville" className="h-9 w-9 rounded-lg object-cover ring-1 ring-white/10 group-hover:ring-accent/60 transition-all" />
+              <span className="font-body text-sm tracking-wider">Admin Panel</span>
+            </a>
           </div>
           <div className="flex items-center gap-6">
             <a href="/" target="_blank" className="hidden md:flex items-center gap-1.5 font-body text-xs tracking-wider text-muted-foreground hover:text-foreground transition-colors">

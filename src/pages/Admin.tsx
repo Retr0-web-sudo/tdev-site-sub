@@ -15,7 +15,8 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[hsl(0_0%_7%)] flex items-center justify-center">
+      <div className="min-h-screen bg-[hsl(0_0%_7%)] flex flex-col items-center justify-center gap-6">
+        <img src="/logo.png" alt="TDEV | Tenue de Ville" className="h-12 w-12 rounded-lg object-cover ring-1 ring-white/10" />
         <p className="font-body text-primary-foreground/60 text-sm tracking-wider">Loading...</p>
       </div>
     );
@@ -26,6 +27,7 @@ const Admin = () => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-[hsl(0_0%_7%)] flex flex-col items-center justify-center gap-4 section-padding">
+        <img src="/logo.png" alt="TDEV | Tenue de Ville" className="h-14 w-14 rounded-lg object-cover ring-1 ring-white/10 mb-2" />
         <h1 className="font-display text-3xl text-primary-foreground font-light">Access Denied</h1>
         <p className="font-body text-primary-foreground/60 text-sm">You don't have admin privileges.</p>
         <a href="/" className="font-body text-xs tracking-[0.2em] uppercase text-accent hover:underline">

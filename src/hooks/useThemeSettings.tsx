@@ -710,6 +710,42 @@ export function mixNeonWithBase(basePreset: ThemePreset, neonPreset: ThemePreset
   };
 }
 
+/* ── Seasonal merge: when seasons clash (2+ themes active), blend palettes ── */
+function blendTokens(presets: ThemePreset[], keys: (keyof ThemePreset["colors"])[], weights: number[]): Partial<ThemePreset["colors"]> {
+  const out: Partial<ThemePreset["colors"]> = {};
+  for (const k of keys) {
+    let h = 0, s = 0, l = 0;
+    presets.forEach((pr, i) => {
+      const [hh, ss, ll] = pr.colors[k].trim().split(/\s+/);
+      h += (parseFloat(hh) % 360) * weights[i];
+      s += parseFloat(ss) * weights[i];
+      l += parseFloat(ll) * weights[i];
+    });
+    h = ((Math.round(h) % 360) + 360) % 360;
+    out[k] = `${h} ${Number(s.toFixed(1))}% ${Number(l.toFixed(1))}%`;
+  }
+  return out as ThemePreset["colors"] & Partial<ThemePreset["colors"]>;
+}
+export function mergeSeasonalPresets(presets: ThemePreset[], weights?: number[]): ThemePreset["colors"] {
+  const n = presets.length;
+  const w = weights ?? presets.map(() => 1 / n);
+  const STRUCTURAL: (keyof ThemePreset["colors"])[] = ["background", "card", "secondary", "muted", "border"];
+  const VIVID: (keyof ThemePreset["colors"])[] = [
+    "foreground", "cardForeground", "primary", "primaryForeground",
+    "secondaryForeground", "mutedForeground", "accent", "accentForeground",
+  ];
+  const ALL: (keyof ThemePreset["colors"])[] = [...STRUCTURAL, ...VIVID];
+  const modes = new Set(presets.map((p) => p.mode));
+  if (modes.size > 1) {
+    // Light+dark clash: keep the dark preset's structure so the page stays
+    // dark (no grey mud), blend the vivid/highlight tokens across all themes
+    const darkBase = presets.find((p) => p.mode === "dark") ?? presets[0];
+    const blended = blendTokens(presets, VIVID, w);
+    return { ...darkBase.colors, ...blended } as ThemePreset["colors"];
+  }
+  return blendTokens(presets, ALL, w) as ThemePreset["colors"];
+}
+
 /* ── Expanded font options ── */
 export const displayFonts = [
   // Classic serifs (MS Word + Google Fonts)
@@ -754,6 +790,7 @@ export const allFontFamilies = [...new Set([...displayFonts, ...bodyFonts])];
 export interface ThemeSettings {
   presetId: string;
   neonOverlayId: string | null;
+  customPalette: ThemePreset["colors"] | null;
   fontDisplay: string;
   fontBody: string;
 }
@@ -761,6 +798,7 @@ export interface ThemeSettings {
 const defaultSettings: ThemeSettings = {
   presetId: "black-gold",
   neonOverlayId: null,
+  customPalette: null,
   fontDisplay: "Cormorant Garamond",
   fontBody: "Outfit",
 };
@@ -810,6 +848,7 @@ function loadGoogleFonts(families: string[]) {
 
 /* ── Resolve final colors ── */
 export function resolveColors(settings: ThemeSettings): ThemePreset["colors"] {
+  if (settings.customPalette) return settings.customPalette;
   const basePreset = themePresets.find((p) => p.id === settings.presetId) ?? themePresets[0];
   if (settings.neonOverlayId) {
     const neonPreset = neonPresets.find((p) => p.id === settings.neonOverlayId);
@@ -880,6 +919,7 @@ export const ThemeSettingsProvider = ({ children }: { children: ReactNode }) => 
         const loaded: ThemeSettings = {
           presetId: (v.presetId as string) ?? defaultSettings.presetId,
           neonOverlayId: (v.neonOverlayId as string) ?? null,
+          customPalette: (v.customPalette as ThemePreset["colors"] | null) ?? null,
           fontDisplay: (v.fontDisplay as string) ?? defaultSettings.fontDisplay,
           fontBody: (v.fontBody as string) ?? defaultSettings.fontBody,
         };

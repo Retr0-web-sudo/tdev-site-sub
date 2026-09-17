@@ -15,7 +15,9 @@ import {
   bodyFonts,
   resolveColors,
   getSeasonalSuggestions,
+  mergeSeasonalPresets,
   type ThemeSettings,
+  type ThemePreset,
 } from "@/hooks/useThemeSettings";
 
 /* ── Mini preview component ── */
@@ -131,6 +133,11 @@ const AdminThemeFonts = () => {
   const activeSuggestions = seasonalSuggestions.filter(
     (s) => !dismissedSuggestions.includes(s.presetId) && s.presetId !== local.presetId
   );
+  // Season clash: multiple themes active at once -> offer a merged palette
+  const clashPresets = activeSuggestions
+    .map((s) => themePresets.find((pt) => pt.id === s.presetId))
+    .filter((pt): pt is ThemePreset => !!pt && pt.category === "holiday");
+  const seasonClash = clashPresets.length >= 2;
 
   // Sync when settings load async
   const [initialized, setInitialized] = useState(false);
@@ -232,7 +239,7 @@ const AdminThemeFonts = () => {
                 size="sm"
                 variant="outline"
                 className="shrink-0 text-xs border-accent/40 text-accent hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setLocal({ ...local, presetId: s.presetId })}
+                onClick={() => setLocal({ ...local, presetId: s.presetId, customPalette: null })}
               >
                 Apply
               </Button>
@@ -244,6 +251,39 @@ const AdminThemeFonts = () => {
               </button>
             </div>
           ))}
+          {seasonClash && (
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-accent/40 bg-gradient-to-r from-accent/15 via-secondary/20 to-accent/10">
+              <Sparkles size={18} className="text-accent shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="font-body text-sm text-primary-foreground dark:text-foreground">
+                  <strong className="text-accent">Seasons are clashing</strong> — {clashPresets.length} themes are active at once (
+                  {clashPresets.map((pt) => pt.name.replace(/^[🎄🪔🧧🎃🌙🌸🎨🎭💕🐣🇺🇸🦃🕎🕯️💀🥮🏳️‍🌈🍺⚜️☘️🎆🎀💐👔✊✨💜🌍🧠\s]+/, "")).join(" × ")}).
+                  Apply a blended palette that merges them.
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 text-xs border-accent/40 text-accent hover:bg-accent hover:text-accent-foreground"
+                onClick={() =>
+                  setLocal({
+                    ...local,
+                    presetId: clashPresets[0].id,
+                    customPalette: mergeSeasonalPresets(clashPresets),
+                  })
+                }
+              >
+                Apply merged
+              </Button>
+            </div>
+          )}
+          {local.customPalette && (
+            <div className="p-3 rounded-lg border border-border bg-secondary/40">
+              <span className="font-body text-xs text-primary-foreground/80 dark:text-foreground/80">
+                <strong className="text-accent">Custom blended palette active</strong> — pick any theme preset below to switch back to it.
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -265,7 +305,7 @@ const AdminThemeFonts = () => {
                       onClick={() => {
                         // If selecting a neon as base, clear overlay
                         const neonOverlayId = preset.category === "neon" ? null : local.neonOverlayId;
-                        setLocal({ ...local, presetId: preset.id, neonOverlayId });
+                        setLocal({ ...local, presetId: preset.id, neonOverlayId, customPalette: null });
                       }}
                       className={`relative rounded-lg border-2 p-3 transition-all text-left bg-card ${
                         selected
