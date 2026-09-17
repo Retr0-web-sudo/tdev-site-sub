@@ -1,7 +1,7 @@
 /**
  * Database Migration Script
  * Run: npx tsx server/migrate.ts
- * This creates all tables from the Lovable backup schema on Neon.
+ * This creates all tables from the TDEV backup schema on Neon.
  */
 
 import { neon } from '@neondatabase/serverless';

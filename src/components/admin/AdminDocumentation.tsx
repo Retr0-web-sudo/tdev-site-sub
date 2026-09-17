@@ -81,7 +81,7 @@ const sections = [
   {
     icon: Shield,
     title: "Content Management Workflows",
-    content: `All admin changes update the database directly and are live immediately — no publish step required. Frontend code changes require clicking 'Publish' in the Lovable editor.`,
+    content: `All admin changes update the database directly and are live immediately — no publish step required. Frontend code changes deploy automatically from the GitHub repo (push to main/master).`,
     bullets: [
       "Inventory → Admin > Inventory tab (Categories + Products sub-tabs)",
       "CSV Import/Export → Admin > Inventory > Products (bulk operations)",
@@ -97,7 +97,7 @@ const sections = [
   {
     icon: Rocket,
     title: "Deployment",
-    content: `The site is hosted on Lovable. Frontend changes require clicking Publish > Update. Backend changes (database, edge functions) deploy automatically. Custom domains can be configured in Project Settings > Domains.`,
+    content: `The site is hosted on Vercel and deployed from GitHub. Push to the main branch and the new build goes live automatically. Backend changes (database) apply instantly. Custom domains can be configured in Project Settings > Domains.`,
   },
   {
     icon: HelpCircle,

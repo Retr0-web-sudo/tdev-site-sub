@@ -1,6 +1,6 @@
 /**
  * All API Routes for TDEV Backend
- * Maps to the Lovable/Supabase schema on Neon
+ * Maps to the TDEV/Supabase schema on Neon
  */
 
 import { Router, Response } from 'express';
