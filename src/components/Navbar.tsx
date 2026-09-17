@@ -4,6 +4,7 @@ import { Menu, X, User, Bell, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 
 const navItems = [
   { label: "Catalog", href: "/shop" },
@@ -100,6 +101,8 @@ const Navbar = () => {
               Sign In
             </Link>
           )}
+
+          <CurrencySwitcher className="hidden md:flex" />
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-foreground hover:text-accent transition-colors" aria-label="Toggle menu">
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}

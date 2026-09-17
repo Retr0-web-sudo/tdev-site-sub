@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
+import { useCurrency } from "@/lib/currency";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 const HeroSection = () => {
+  const { format } = useCurrency();
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-background flex items-center">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/5" />
@@ -75,7 +77,7 @@ const HeroSection = () => {
                     <p className="text-xs font-body text-muted-foreground">{plan.items} · {plan.desc}</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-display text-lg font-light text-foreground">GH¢{plan.price}</span>
+                    <span className="font-display text-lg font-light text-foreground">{format(plan.price)}</span>
                     <span className="text-[10px] text-muted-foreground font-body">/mo</span>
                   </div>
                 </motion.div>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeSettingsProvider } from "@/hooks/useThemeSettings";
+import { CurrencyProvider } from "@/lib/currency";
 import { WishlistProvider } from "@/hooks/useWishlist";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
@@ -65,10 +66,12 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ThemeSettingsProvider>
-            <WishlistProvider>
-              <AppInner />
-            </WishlistProvider>
-          </ThemeSettingsProvider>
+                      <CurrencyProvider>
+                        <WishlistProvider>
+                          <AppInner />
+                        </WishlistProvider>
+                      </CurrencyProvider>
+                    </ThemeSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

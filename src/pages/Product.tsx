@@ -10,6 +10,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWishlist } from "@/hooks/useWishlist";
 import { toast } from "sonner";
+import { useCurrency } from "@/lib/currency";
 import Seo from "@/components/Seo";
 
 const TIER_STYLES: Record<string, { label: string; bg: string; text: string }> = {
@@ -18,13 +19,14 @@ const TIER_STYLES: Record<string, { label: string; bg: string; text: string }> =
   luxe: { label: "Luxe", bg: "bg-amber-500/15", text: "text-amber-400" },
 };
 
-const TIER_PLANS: Record<string, { name: string; min: string; price: string }> = {
-  essentials: { name: "Essentials", min: "2-3 items", price: "GH¢149/mo" },
-  premium: { name: "Premium", min: "4-5 items", price: "GH¢299/mo" },
-  luxe: { name: "Luxe", min: "6-8 items", price: "GH¢499/mo" },
+const TIER_PLANS: Record<string, { name: string; min: string; price: number }> = {
+  essentials: { name: "Essentials", min: "2-3 items", price: 149 },
+  premium: { name: "Premium", min: "4-5 items", price: 299 },
+  luxe: { name: "Luxe", min: "6-8 items", price: 499 },
 };
 
 const Product = () => {
+  const { format } = useCurrency();
   const { slug } = useParams<{ slug: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -253,15 +255,15 @@ const Product = () => {
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-2">
                 <span className="font-body text-2xl font-medium text-foreground">
-                  GH¢ {product.price.toFixed(2)}
+                  {format(product.price)}
                 </span>
                 {product.compare_at_price && product.compare_at_price > product.price && (
                   <>
                     <span className="font-body text-sm text-muted-foreground line-through">
-                      GH¢ {product.compare_at_price.toFixed(2)}
+                      {format(product.compare_at_price)}
                     </span>
                     <span className="font-body text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded">
-                      Save GH¢ {(product.compare_at_price - product.price).toFixed(2)}
+                      Save {format(product.compare_at_price - product.price)}
                     </span>
                   </>
                 )}
@@ -275,7 +277,7 @@ const Product = () => {
                 </span>
                 <span className="font-body text-xs text-muted-foreground">•</span>
                 <span className="font-body text-xs text-muted-foreground">
-                  Included in {tierPlan.price} plan
+                  Included in {format(tierPlan.price)}/mo plan
                 </span>
               </div>
 

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Heart, Lock } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useCurrency } from "@/lib/currency";
 
 const TIER_STYLES: Record<string, { label: string; bg: string; text: string }> = {
   essentials: { label: "Essentials", bg: "bg-secondary/80", text: "text-muted-foreground" },
@@ -15,6 +16,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { format } = useCurrency();
   if (!product) return null;
   const mainImage = product.images?.[0];
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
@@ -105,11 +107,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </h3>
           <div className="flex items-baseline gap-2.5">
             <span className={`font-body text-sm ${hasDiscount ? "text-accent font-medium" : "text-muted-foreground"}`}>
-              GH¢ {Number(product.price).toFixed(2)}
+              {format(Number(product.price))}
             </span>
             {hasDiscount && (
               <span className="font-body text-xs text-muted-foreground/60 line-through">
-                GH¢ {Number(product.compare_at_price).toFixed(2)}
+                {format(Number(product.compare_at_price))}
               </span>
             )}
           </div>

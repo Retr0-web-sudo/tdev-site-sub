@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useCurrency } from "@/lib/currency";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Package, Sparkles, Star, Crown, Check, Shirt, Palette, Truck, RotateCcw, Heart, MessageSquare } from "lucide-react";
 
@@ -25,9 +26,9 @@ const steps = [
     title: "Choose Your Plan",
     desc: "We'll recommend a tier based on your quiz. Or pick your own — Essentials, Premium, or Luxe. Switch anytime.",
     details: [
-      "Essentials (GH¢149/mo): 2–3 everyday basics",
-      "Premium (GH¢299/mo): 4–5 curated looks + exclusives",
-      "Luxe (GH¢499/mo): 6–8 designer-level pieces",
+      "Essentials: 2–3 everyday basics",
+      "Premium: 4–5 curated looks + exclusives",
+      "Luxe: 6–8 designer-level pieces",
     ],
     icon: Package,
   },
@@ -62,6 +63,7 @@ const features = [
 ];
 
 const CollectionsGrid = () => {
+  const { format } = useCurrency();
   return (
     <section id="how-it-works" className="section-padding py-16 sm:py-24 md:py-36">
       <motion.div
@@ -112,7 +114,7 @@ const CollectionsGrid = () => {
                 <span className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground">{plan.name}</span>
               </div>
               <div className="mb-4">
-                <span className="font-display text-4xl font-light text-foreground">GH¢ {plan.price}</span>
+                <span className="font-display text-4xl font-light text-foreground">{format(plan.price)}</span>
                 <span className="text-muted-foreground font-body text-sm ml-1">/month</span>
               </div>
               <p className="text-muted-foreground font-body text-sm mb-2">{plan.desc}</p>

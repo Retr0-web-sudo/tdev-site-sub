@@ -36,10 +36,10 @@ const COLOR_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { id: "budget", label: "Budget-Friendly", range: "GH¢20–40 per item", desc: "Great style doesn't break the bank" },
-  { id: "mid", label: "Mid-Range", range: "GH¢40–80 per item", desc: "Quality pieces at fair prices" },
-  { id: "premium", label: "Premium", range: "GH¢80–150 per item", desc: "Invest in pieces that last" },
-  { id: "luxury", label: "Luxury", range: "GH¢150+ per item", desc: "Only the finest will do" },
+  { id: "budget", label: "Budget-Friendly", range: "$20–40 per item", desc: "Great style doesn't break the bank" },
+  { id: "mid", label: "Mid-Range", range: "$40–80 per item", desc: "Quality pieces at fair prices" },
+  { id: "premium", label: "Premium", range: "$80–150 per item", desc: "Invest in pieces that last" },
+  { id: "luxury", label: "Luxury", range: "$150+ per item", desc: "Only the finest will do" },
 ];
 
 const LIFESTYLE_OPTIONS = [

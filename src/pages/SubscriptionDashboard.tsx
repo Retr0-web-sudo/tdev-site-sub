@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import SubscriptionNav from "@/components/SubscriptionNav";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/lib/currency";
 import { useToast } from "@/hooks/use-toast";
 
 type Subscription = {
@@ -49,6 +50,7 @@ const statusColors: Record<string, string> = {
 };
 
 const SubscriptionDashboard = () => {
+  const { format } = useCurrency();
   const { toast } = useToast();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [orders, setOrders] = useState<SubOrder[]>([]);
@@ -200,7 +202,7 @@ const SubscriptionDashboard = () => {
                   <h2 className="font-display text-2xl font-light text-foreground">{subscription.plan_name}</h2>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-3xl font-light text-foreground">GH¢ {subscription.plan_price}</p>
+                  <p className="font-display text-3xl font-light text-foreground">{format(subscription.plan_price)}</p>
                   <p className="text-muted-foreground font-body text-xs">/month</p>
                 </div>
               </div>

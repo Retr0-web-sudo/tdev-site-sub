@@ -8,6 +8,7 @@ import Seo from "@/components/Seo";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/lib/currency";
 
 type Plan = {
   id: string;
@@ -36,6 +37,7 @@ const PAYMENT_METHODS = [
 ];
 
 const SubscriptionCheckout = () => {
+  const { format, currency: activeCurrency } = useCurrency();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -102,7 +104,7 @@ const SubscriptionCheckout = () => {
         subscription_id: subData.id,
         user_id: user.id,
         amount: plan.price,
-        currency: "GHS",
+        currency: activeCurrency.code,
         payment_method: paymentMethod,
         status: "succeeded",
         transaction_id: `txn_${Date.now()}`,
@@ -325,7 +327,7 @@ const SubscriptionCheckout = () => {
                 <div className="border-t border-border/30 pt-4">
                   <div className="flex justify-between items-baseline">
                     <span className="text-sm font-body text-muted-foreground">Monthly</span>
-                    <span className="font-display text-2xl font-light text-foreground">GH¢ {plan.price}</span>
+                    <span className="font-display text-2xl font-light text-foreground">{format(plan.price)}</span>
                   </div>
                   <p className="text-[10px] font-body text-muted-foreground/60 mt-1">Cancel anytime. Free delivery included.</p>
                 </div>

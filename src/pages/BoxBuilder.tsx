@@ -8,6 +8,7 @@ import Seo from "@/components/Seo";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/lib/currency";
 
 type Plan = {
   id: string;
@@ -54,6 +55,7 @@ const BOX_THEMES = [
 ];
 
 const BoxBuilder = () => {
+  const { format } = useCurrency();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -255,7 +257,7 @@ const BoxBuilder = () => {
                           <div className="p-3">
                             <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">{product.brand || "TDEV"}</p>
                             <h3 className="text-sm font-body font-medium text-foreground truncate">{product.name}</h3>
-                            <p className="text-sm font-body text-foreground/70 mt-0.5">GH¢ {Number(product.price)}</p>
+                            <p className="text-sm font-body text-foreground/70 mt-0.5">{format(Number(product.price))}</p>
                           </div>
                         </motion.button>
                       );
@@ -288,7 +290,7 @@ const BoxBuilder = () => {
                             <p className="text-xs text-muted-foreground font-body">{p.brand || "TDEV"} · {p.sizes?.join(", ")}</p>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-body text-foreground">GH¢ {Number(p.price)}</span>
+                            <span className="text-sm font-body text-foreground">{format(Number(p.price))}</span>
                             <button onClick={() => toggleItem(p.id)} className="p-1.5 hover:bg-red-500/10 text-red-400 rounded-md transition-colors">
                               <X size={14} />
                             </button>
@@ -326,7 +328,7 @@ const BoxBuilder = () => {
                 <div className="border-b border-border/30 pb-3 mb-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-body text-foreground">{plan.name}</span>
-                    <span className="text-sm font-body text-muted-foreground">GH¢ {plan.price}/mo</span>
+                    <span className="text-sm font-body text-muted-foreground">{format(plan.price)}/mo</span>
                   </div>
                   {selectedTheme && (
                     <p className="text-xs text-muted-foreground font-body mt-1">
@@ -359,7 +361,7 @@ const BoxBuilder = () => {
                     {selectedProducts.slice(0, 5).map(p => (
                       <div key={p.id} className="flex items-center justify-between text-xs font-body">
                         <span className="text-foreground/70 truncate flex-1">{p.name}</span>
-                        <span className="text-muted-foreground ml-2">GH¢ {Number(p.price)}</span>
+                        <span className="text-muted-foreground ml-2">{format(Number(p.price))}</span>
                       </div>
                     ))}
                     {selectedProducts.length > 5 && (
@@ -367,7 +369,7 @@ const BoxBuilder = () => {
                     )}
                     <div className="border-t border-border/30 pt-2 mt-2 flex justify-between text-xs font-body">
                       <span className="text-muted-foreground">Total value</span>
-                      <span className="text-foreground font-medium">GH¢ {totalValue.toFixed(2)}</span>
+                      <span className="text-foreground font-medium">{format(totalValue)}</span>
                     </div>
                   </div>
                 )}

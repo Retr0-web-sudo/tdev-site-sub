@@ -772,7 +772,7 @@ const AdminProducts = () => {
                     <td className="px-5 py-3 font-body text-xs text-muted-foreground font-mono">{p.sku || "—"}</td>
                     <td className="px-5 py-3 font-body text-xs text-muted-foreground">{pAny.brand || "—"}</td>
                     <td className="px-5 py-3 font-body text-xs text-muted-foreground">{getCategoryName(p.category_id)}</td>
-                    <td className="px-5 py-3 font-body text-sm">GH¢{p.price.toFixed(2)}</td>
+                    <td className="px-5 py-3 font-body text-sm">${p.price.toFixed(2)}</td>
                     <td className="px-5 py-3">
                       <span className={`font-body text-xs px-2 py-1 rounded ${
                         p.stock_quantity === 0 ? "bg-red-900/30 text-red-400" : isLowStock ? "bg-amber-900/30 text-amber-400" : "bg-green-900/30 text-green-400"

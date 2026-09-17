@@ -3,8 +3,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCurrency } from "@/lib/currency";
 
 const CartDrawer = () => {
+  const { format } = useCurrency();
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
 
   return (
@@ -98,7 +100,7 @@ const CartDrawer = () => {
                           </button>
                         </div>
                         <span className="font-body text-sm text-foreground">
-                          GH¢{(item.product.price * item.quantity).toFixed(2)}
+                          {format(item.product.price * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -113,7 +115,7 @@ const CartDrawer = () => {
                   Subtotal
                 </span>
                 <span className="font-display text-xl text-foreground">
-                  GH¢{totalPrice.toFixed(2)}
+                  {format(totalPrice)}
                 </span>
               </div>
               <p className="font-body text-xs text-muted-foreground">

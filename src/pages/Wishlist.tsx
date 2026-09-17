@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import SubscriptionNav from "@/components/SubscriptionNav";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useCurrency } from "@/lib/currency";
 import type { Tables } from "@/integrations/supabase/types";
 
 const TIER_ACCESS: Record<string, string[]> = {
@@ -30,6 +31,7 @@ const tierLabels: Record<string, string> = {
 };
 
 const Wishlist = () => {
+  const { format } = useCurrency();
   const { items, removeFromWishlist } = useWishlist();
   const currentTier = "essentials";
   const currentTierIdx = TIER_HIERARCHY.indexOf(currentTier);
@@ -47,7 +49,7 @@ const Wishlist = () => {
     return accessible.includes(tier);
   });
 
-  const formatCedi = (n: number) => `GH¢${Number(n || 0).toFixed(2)}`;
+  const formatCedi = (n: number) => format(n);
 
   return (
     <div className="min-h-screen bg-background">

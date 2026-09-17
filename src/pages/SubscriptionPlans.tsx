@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import SubscriptionNav from "@/components/SubscriptionNav";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/lib/currency";
 
 type Plan = {
   id: string;
@@ -46,6 +47,7 @@ const KEEP_DISCOUNTS = [
 ];
 
 const SubscriptionPlans = () => {
+  const { format } = useCurrency();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [frequency, setFrequency] = useState("monthly");
@@ -179,11 +181,11 @@ const SubscriptionPlans = () => {
                   <div className="mb-6">
                     {frequency !== "monthly" && (
                       <span className="text-muted-foreground font-body text-sm line-through mr-2">
-                        GH¢ {plan.price}
+                        {format(plan.price)}
                       </span>
                     )}
                     <span className="font-display text-4xl font-light text-foreground">
-                      GH¢ {discountedPrice}
+                      {format(discountedPrice)}
                     </span>
                     <span className="text-muted-foreground font-body text-sm ml-1">/mo</span>
                     {frequency !== "monthly" && (
