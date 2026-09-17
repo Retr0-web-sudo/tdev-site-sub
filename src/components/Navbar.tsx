@@ -67,7 +67,7 @@ const Navbar = () => {
           />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 lg:gap-12 absolute left-1/2 -translate-x-1/2">
+        <div className="hidden lg:flex items-center gap-5 xl:gap-8 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
           {navItems.map((item) =>
             item.href.startsWith("/") && !item.href.startsWith("/#") ? (
               <Link key={item.label} to={item.href} className={`nav-link ${location.pathname === item.href ? "nav-link-active" : ""}`}>{item.label}</Link>
@@ -77,7 +77,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 xl:gap-4">
           {user ? (
             <>
               <Link to="/wishlist" className="relative text-foreground hover:text-accent transition-all duration-300 hidden md:block" aria-label="Wishlist">
@@ -102,9 +102,9 @@ const Navbar = () => {
             </Link>
           )}
 
-          <CurrencySwitcher className="hidden md:flex" />
+          <CurrencySwitcher className="hidden lg:flex" />
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-foreground hover:text-accent transition-colors" aria-label="Toggle menu">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden text-foreground hover:text-accent transition-colors" aria-label="Toggle menu">
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
@@ -112,7 +112,7 @@ const Navbar = () => {
 
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border/30" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
+          <motion.div className="lg:hidden bg-background/95 backdrop-blur-xl border-t border-border/30" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
             <div className="section-padding py-10 flex flex-col gap-6">
               {navItems.map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08, duration: 0.3 }}>
@@ -126,6 +126,7 @@ const Navbar = () => {
               {!user && (
                 <Link to="/auth" onClick={() => setMobileOpen(false)} className="nav-link text-xl block text-accent">Sign In</Link>
               )}
+              <CurrencySwitcher className="mt-4" />
             </div>
           </motion.div>
         )}
