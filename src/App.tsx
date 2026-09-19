@@ -19,6 +19,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Contact from "./pages/Contact";
 import Wishlist from "./pages/Wishlist";
 import Notifications from "./pages/Notifications";
+import { TermsPage, PrivacyPage, CookiePage } from "@/pages/Legal";
 import NotFound from "./pages/NotFound";
 import Catalog from "./pages/Catalog";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
@@ -52,6 +53,10 @@ const AppInner = () => {
         <Route path="/subscription/build-box" element={<BoxBuilder />} />
         <Route path="/subscription/checkout" element={<SubscriptionCheckout />} />
         <Route path="/subscription/dashboard" element={<SubscriptionDashboard />} />
+        
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/cookies" element={<CookiePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

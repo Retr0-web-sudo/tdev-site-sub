@@ -64,7 +64,7 @@ const Footer = () => {
   return (
     <footer id="contact" className="bg-[hsl(0_0%_7%)] text-white section-padding py-20 md:py-28">
       <motion.div
-        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-8 max-w-6xl mx-auto"
+        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-8 md:gap-8 max-w-6xl mx-auto"
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
@@ -113,6 +113,22 @@ const Footer = () => {
               ))}
             </div>
           )}
+        </div>
+        {/* Legal */}
+        <div>
+          <p className="text-[10px] tracking-[0.3em] uppercase font-body mb-4 sm:mb-6 text-white/30">Legal</p>
+          <div className="flex flex-col gap-2 sm:gap-3">
+            {[
+              { label: "Terms & Conditions", href: "/terms" },
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Cookie Policy", href: "/cookies" },
+            ].map((link) => (
+              <Link key={link.label} to={link.href} className="group font-body text-xs sm:text-sm text-white/60 hover:text-white transition-colors duration-300 inline-flex items-center gap-1.5 w-fit">
+                {link.label}
+                <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </Link>
+            ))}
+          </div>
         </div>
       </motion.div>
 
